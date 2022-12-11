@@ -1,9 +1,4 @@
-import {
-  EntityRideableComponent,
-  Player,
-  Location,
-  MolangVariableMap,
-} from '@minecraft/server';
+import { Player } from '@minecraft/server';
 import { Vector3 } from './Vector3';
 import { PlayMode } from '../enums/PlayMode';
 interface Properties {
