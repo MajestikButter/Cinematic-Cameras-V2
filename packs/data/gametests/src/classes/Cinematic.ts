@@ -1,4 +1,5 @@
 import * as server from '@minecraft/server';
+import { FormCancelationReason, ModalFormData } from '@minecraft/server-ui';
 const { Location, MolangVariableMap, system, world } = server;
 
 import cinematics from '../cinematics';
@@ -262,15 +263,12 @@ export class Cinematic {
     player.setProp('cinematicMode', mode);
 
     switch (mode) {
-      case PlayMode.teleport:
+      case PlayMode.teleport: {
         if (!editor) player.runCommand('gamemode spectator');
-        break;
-      case PlayMode.velocity: {
-        if (!editor) player.runCommand('gamemode adventure');
         break;
       }
     }
-    const { pos, rot } = this.transformFromTime(0);
+    const { pos, rot } = this.transformFromTime(start);
     player.update(pos, rot, PlayMode.teleport);
 
     if (editor) player.runCommand('gamemode creative');
@@ -380,6 +378,19 @@ export class Cinematic {
       this.timeline,
       mode
     );
+  }
+
+  async promptCopy(player: CinematicPlayer, copyText: string) {
+    const form = new ModalFormData()
+      .title('Copy Paste')
+      .textField(
+        'Select the text within the box using `Ctrl` + `A` then press `Ctrl` + `C` to copy the text to clipboard',
+        '',
+        copyText
+      );
+    let res = await player.show(form);
+    if (res.canceled && res.cancelationReason == FormCancelationReason.userBusy)
+      await this.promptCopy(player, copyText);
   }
 
   toJSON() {

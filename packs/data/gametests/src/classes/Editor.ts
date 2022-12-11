@@ -152,7 +152,7 @@ export class Editor {
         ['Linear and Catmull Rom', 'BSpline', 'Cubic'],
         types.rot
       )
-      .dropdown('Play Mode', ['Teleport', 'Velocity'], this.#cinematic.playMode)
+      .dropdown('Play Mode', ['Teleport'], this.#cinematic.playMode)
       .slider('Editor Playback Speed', 0.25, 5, 0.25, this.#playbackSpeed)
       .slider('Editor Display Speed', 1, 4, 0.25, this.#displaySpeed)
       .slider('Editor Move Increment', 0.1, 0.5, 0.1, this.#moveIncrement);

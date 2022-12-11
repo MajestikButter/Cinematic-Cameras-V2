@@ -36,40 +36,6 @@ export class CinematicPlayer {
     const dim = player.dimension;
     if (mode == PlayMode.teleport) {
       player.teleport(pos.toObject(), dim, rot.x, rot.y);
-    } else {
-      let pPos = player.location;
-      let pLoc = new Location(pPos.x, pPos.y, pPos.z);
-
-      const query = {
-        closest: 1,
-        type: 'mbcc:velocity_cam',
-        maxDistance: 10,
-        tags: ['playerHandler'],
-        location: pLoc,
-      };
-
-      let [ride] = dim.getEntities(query);
-      query.tags = ['velocityHandler'];
-
-      let [velRide] = dim.getEntities(query);
-
-      if (!ride) {
-        ride = dim.spawnEntity('mbcc:velocity_cam', pLoc);
-        ride.addTag('playerHandler');
-      }
-      if (!velRide) {
-        velRide = dim.spawnEntity('mbcc:velocity_cam', pLoc);
-        velRide.addTag('velocityHandler');
-        velRide.runCommandAsync(
-          'ride @e[type=mbcc:velocity_cam,tag=playerHandler,c=1] start_riding @s'
-        );
-      }
-      const rPos = velRide.location;
-
-      this.runCommand(`tp ${rPos.x} ${rPos.y} ${rPos.z} ${rot.y} ${rot.x}`);
-      ride.runCommandAsync('ride @p start_riding @s');
-
-      velRide.setVelocity(pos.sub(rPos).toObject());
     }
   }
 

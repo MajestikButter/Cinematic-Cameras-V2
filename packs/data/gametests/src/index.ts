@@ -177,8 +177,10 @@ world.events.beforeChat.subscribe((evd) => {
       let id = args[1];
       let cin = cinematics[id];
       if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
-      console.warn(JSON.stringify(cin.toJSON()));
-      sender.tell(`§aSuccessfully exporting: ${id}§r`);
+      let res = JSON.stringify(cin.toJSON());
+      let plr = new CinematicPlayer(sender);
+      cin.promptCopy(plr, res);
+      sender.tell(`§aSuccessfully exported: ${id}§r`);
       break;
     }
     case 'bake': {
@@ -202,7 +204,9 @@ world.events.beforeChat.subscribe((evd) => {
           3
         )} ${rot.x.toFixed(3)}\n`;
       }
-      console.warn(res);
+      let plr = new CinematicPlayer(sender);
+      cin.promptCopy(plr, res);
+      sender.tell(`§aSuccessfully baked: ${id}§r`);
       break;
     }
     default: {
