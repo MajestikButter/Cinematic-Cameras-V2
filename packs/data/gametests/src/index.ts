@@ -105,8 +105,10 @@ world.events.beforeChat.subscribe((evd) => {
   switch (cmd) {
     case 'new': {
       let id = args[1];
+      if (!id)
+        return sender.tell(`§cSupply an id in order to create a cinematic§r`);
       let cin = cinematics[id];
-      if (!cin) return sender.tell(`§cFound existing cinematic: ${id}§r`);
+      if (cin) return sender.tell(`§cFound existing cinematic: ${id}§r`);
       cinematics[id] = new Cinematic(id);
       sender.tell(`§aSuccessfully created cinematic: ${id}§r`);
       break;
