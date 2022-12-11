@@ -1,0 +1,40 @@
+{
+  "author": "MajestikButter",
+  "name": "cinematic-cameras-v2",
+  "packs": {
+    "behaviorPack": "./packs/BP",
+    "resourcePack": "./packs/RP"
+  },
+  "regolith": {
+    "dataPath": "./packs/data",
+    "filterDefinitions": {
+      "gametests": {
+        "url": "github.com/Bedrock-OSS/regolith-filters",
+        "version": "1.2.0"
+      }
+    },
+    "profiles": {
+      "default": {
+        "export": {
+          "readOnly": false,
+          "target": "local"
+        },
+        "filters": [
+          {
+            "filter": "gametests",
+            "settings": {
+              "buildOptions": {
+                "entryPoints": ["data/gametests/src/index.ts"],
+                "minify": false,
+                "external": ["@minecraft/server", "@minecraft/server-ui", "./cinematics"]
+              },
+              "moduleUUID": "861094c5-f426-447c-ad1d-2bea2d9de201",
+              "modules": [],
+              "outfile": "BP/scripts/index.js"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
