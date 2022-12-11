@@ -4,11 +4,19 @@ const { Location, MolangVariableMap, system, world } = server;
 import cinematics from '../cinematics';
 import { CinematicType } from '../enums/CinematicType';
 import { Interpolation } from '../enums/Interpolation';
+import { PlayMode } from '../enums/PlayMode';
 import { Keyframe } from './Keyframe';
 import { BsplineMatrix, CatmullRomMatrix, CubicMatrix, Matrix } from './Matrix';
 import { CinematicPlayer } from './Player';
-import { Timeline } from './Timeline';
+import { JSONTimeline, Timeline } from './Timeline';
 import { Vector3 } from './Vector3';
+
+export interface JSONCinematic {
+  posType: CinematicType;
+  rotType: CinematicType;
+  playMode: PlayMode;
+  timeline: JSONTimeline;
+}
 
 export class Cinematic {
   static fromJSON(id: string, json: typeof cinematics[string]) {
@@ -16,7 +24,8 @@ export class Cinematic {
       id,
       json.posType,
       json.rotType,
-      Timeline.fromJSON(json.timeline)
+      Timeline.fromJSON(json.timeline),
+      json.playMode
     );
   }
 
@@ -24,6 +33,7 @@ export class Cinematic {
   #timeline: Timeline;
   #posType: CinematicType;
   #rotType: CinematicType;
+  #playMode: PlayMode;
 
   /**
    * @readonly
@@ -44,16 +54,22 @@ export class Cinematic {
     };
   }
 
+  get playMode() {
+    return this.#playMode;
+  }
+
   constructor(
     id: string,
     posType = CinematicType.linearCatmull,
     rotType = CinematicType.linearCatmull,
-    timeline = new Timeline()
+    timeline = new Timeline(),
+    playMode = PlayMode.teleport
   ) {
     this.#id = id;
     this.#posType = posType;
     this.#rotType = rotType;
     this.#timeline = timeline;
+    this.#playMode = playMode;
   }
 
   getPoint(
@@ -237,17 +253,43 @@ export class Cinematic {
     return { pos, rot };
   }
 
-  play(player: CinematicPlayer, start = 0, speed = 1, spectator = true) {
+  play(player: CinematicPlayer, start = 0, speed = 1, editor = false) {
     player.setProp('cinematicId', this.id);
     player.setProp('cinematicTime', start);
     player.setProp('cinematicSpeed', speed);
-    if (spectator) player.runCommand('gamemode spectator');
+
+    let mode = this.#playMode;
+    player.setProp('cinematicMode', mode);
+
+    switch (mode) {
+      case PlayMode.teleport:
+        if (!editor) player.runCommand('gamemode spectator');
+        break;
+      case PlayMode.velocity: {
+        if (!editor) player.runCommand('gamemode adventure');
+        break;
+      }
+    }
+    const { pos, rot } = this.transformFromTime(0);
+    player.update(pos, rot, PlayMode.teleport);
+
+    if (editor) player.runCommand('gamemode creative');
+
+    return new Promise<void>((resolve) => {
+      const cinId = this.id;
+      system.run(function tick() {
+        if (player.getProp('cinematicId') != cinId) {
+          resolve();
+        } else system.run(tick);
+      });
+    });
   }
 
   stop(player: CinematicPlayer) {
     let id = player.getProp('cinematicId');
     if (id != this.id) return;
     player.removeProp('cinematicId');
+    player.runCommand('ride @s stop_riding');
   }
 
   tick(player: CinematicPlayer, delta: number) {
@@ -263,7 +305,8 @@ export class Cinematic {
     if (time > this.#timeline.length) return this.stop(player);
 
     let { pos, rot } = this.transformFromTime(time);
-    player.update(pos, rot);
+    let mode = player.getProp('cinematicMode') ?? PlayMode.teleport;
+    player.update(pos, rot, mode);
   }
 
   visualize(
@@ -329,11 +372,21 @@ export class Cinematic {
   withTypes(pos: CinematicType, rot: CinematicType) {
     return new Cinematic(this.id, pos, rot, this.timeline);
   }
+  withPlayMode(mode: PlayMode) {
+    return new Cinematic(
+      this.id,
+      this.#posType,
+      this.#rotType,
+      this.timeline,
+      mode
+    );
+  }
 
   toJSON() {
     return {
       posType: this.#posType,
       rotType: this.#rotType,
+      playMode: this.#playMode,
       timeline: this.timeline.toJSON(),
     };
   }

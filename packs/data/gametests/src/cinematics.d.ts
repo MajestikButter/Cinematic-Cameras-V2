@@ -1,11 +1,6 @@
-import { JSONTimeline } from './classes/Timeline';
-import { CinematicType } from './enums/CinematicType';
+import { JSONCinematic } from './classes/Cinematic';
 
 declare const cinematics: {
-  [id: string | number]: {
-    posType: CinematicType;
-    rotType: CinematicType;
-    timeline: JSONTimeline
-  };
+  [id: string | number]: JSONCinematic;
 };
 export default cinematics;

@@ -2,6 +2,7 @@ import { system } from '@minecraft/server';
 import { ModalFormData, FormCancelationReason } from '@minecraft/server-ui';
 import { CinematicType } from '../enums/CinematicType';
 import { Interpolation } from '../enums/Interpolation';
+import { PlayMode } from '../enums/PlayMode';
 import { Cinematic } from './Cinematic';
 import { Keyframe } from './Keyframe';
 import { CinematicPlayer } from './Player';
@@ -38,12 +39,12 @@ export class Editor {
   newKeyframe() {
     let p = this.#player;
     let rot = p.rot;
-    let prevRotK = this.cinematic.timeline.getKeyframeBefore(this.cursorTime)
+    let prevRotK = this.cinematic.timeline.getKeyframeBefore(this.cursorTime);
     if (prevRotK) {
       let pRot = prevRotK.rot!.value;
-      let dif = Math.abs(rot.y-pRot.y);
+      let dif = Math.abs(rot.y - pRot.y);
       if (dif > 180) {
-        rot = new Vector3(rot.x, 360+rot.y)
+        rot = new Vector3(rot.x, 360 + rot.y);
       }
     }
     let keyframe = new Keyframe(
@@ -151,6 +152,7 @@ export class Editor {
         ['Linear and Catmull Rom', 'BSpline', 'Cubic'],
         types.rot
       )
+      .dropdown('Play Mode', ['Teleport', 'Velocity'], this.#cinematic.playMode)
       .slider('Editor Playback Speed', 0.25, 5, 0.25, this.#playbackSpeed)
       .slider('Editor Display Speed', 1, 4, 0.25, this.#displaySpeed)
       .slider('Editor Move Increment', 0.1, 0.5, 0.1, this.#moveIncrement);
@@ -162,16 +164,22 @@ export class Editor {
       return;
     }
     if (!res.formValues) return;
-    let [posType, rotType, playback, display] = res.formValues as [
-      CinematicType,
-      CinematicType,
-      number,
-      number
-    ];
+    let [posType, rotType, playMode, playback, display, moveIncre] =
+      res.formValues as [
+        CinematicType,
+        CinematicType,
+        PlayMode,
+        number,
+        number,
+        number
+      ];
 
+    this.#cinematic = this.#cinematic
+      .withTypes(posType, rotType)
+      .withPlayMode(playMode);
     this.#playbackSpeed = playback;
     this.#displaySpeed = display;
-    this.#cinematic = this.#cinematic.withTypes(posType, rotType);
+    this.#moveIncrement = moveIncre;
   }
 
   deleteKeyframe() {
@@ -183,30 +191,38 @@ export class Editor {
   moveCursor(delta: 1 | 0 | -1) {
     let line = this.#cinematic.timeline;
     let length = line.length;
-    let newPos = Math.min(length + 10, Math.max(0, this.#cursorTime + delta * this.#moveIncrement));
+    let newPos = Math.min(
+      length + 10,
+      Math.max(0, this.#cursorTime + delta * this.#moveIncrement)
+    );
 
     let key: Keyframe | undefined;
     if (delta > 0) {
       key = line.getKeyframeAfter(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < (0.05 + this.#moveIncrement)
+        (k) => Math.abs(k.time - newPos) < 0.05 + this.#moveIncrement
       );
     } else if (delta < 0) {
       key = line.getKeyframeBefore(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < (0.05 + this.#moveIncrement)
+        (k) => Math.abs(k.time - newPos) < 0.05 + this.#moveIncrement
       );
     }
+    console.warn(delta)
     if (key) newPos = key.time;
     this.#cursorTime = newPos;
     let { pos, rot } = this.#cinematic.transformFromTime(newPos);
-    this.#player.update(pos, rot);
+    this.#player.update(pos, rot, PlayMode.teleport);
   }
 
   play() {
-    this.#cinematic.play(this.#player, this.#cursorTime, this.#playbackSpeed, false);
+    this.#cinematic
+      .play(this.#player, this.#cursorTime, this.#playbackSpeed, true)
+      .then(() => {
+        this.stop();
+      });
     this.setItem(4, 'mbcc:stop');
   }
 
@@ -246,11 +262,11 @@ export class Editor {
   tick() {
     let cin = this.cinematic;
     let length = cin.timeline.length;
-    let currKeyframe = cin.timeline.getKeyframeAt(this.cursorTime)
+    let currKeyframe = cin.timeline.getKeyframeAt(this.cursorTime);
     this.#player.setActionbar(
-      `Keyframe: ${currKeyframe ? currKeyframe.time : "None"}   Time ${Math.floor(this.cursorTime * 100) / 100} / ${
-        Math.floor(length * 100) / 100
-      }`
+      `Keyframe: ${currKeyframe ? currKeyframe.time : 'None'}   Time ${
+        Math.floor(this.cursorTime * 100) / 100
+      } / ${Math.floor(length * 100) / 100}`
     );
     if (system.currentTick % 20 != 0) return;
     cin.visualize(0, this.#displaySpeed, undefined, undefined, '', '');

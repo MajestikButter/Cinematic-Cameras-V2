@@ -1,12 +1,19 @@
-import { ModalFormData } from '@minecraft/server-ui';
-import { Player } from '@minecraft/server';
+import {
+  EntityRideableComponent,
+  Player,
+  Location,
+  MolangVariableMap,
+} from '@minecraft/server';
 import { Vector3 } from './Vector3';
+import { PlayMode } from '../enums/PlayMode';
 interface Properties {
-  cinematicTime: number;
-  cinematicSpeed: number;
-  cinematicId: string;
+  cinematicTime?: number;
+  cinematicSpeed?: number;
+  cinematicId?: string;
+  cinematicMode?: PlayMode;
 }
 
+const PropertyMap = new Map<string, Properties>();
 export class CinematicPlayer {
   #player: Player;
 
@@ -24,21 +31,81 @@ export class CinematicPlayer {
     this.#player = player;
   }
 
-  update(pos: Vector3, rot: Vector3) {
-    let player = this.#player;
-    player.teleport(pos.toObject(), player.dimension, rot.x, rot.y);
+  update(pos: Vector3, rot: Vector3, mode: PlayMode) {
+    const player = this.#player;
+    const dim = player.dimension;
+    if (mode == PlayMode.teleport) {
+      player.teleport(pos.toObject(), dim, rot.x, rot.y);
+    } else {
+      let pPos = player.location;
+      let pLoc = new Location(pPos.x, pPos.y, pPos.z);
+
+      const query = {
+        closest: 1,
+        type: 'mbcc:velocity_cam',
+        maxDistance: 10,
+        tags: ['playerHandler'],
+        location: pLoc,
+      };
+
+      let [ride] = dim.getEntities(query);
+      query.tags = ['velocityHandler'];
+
+      let [velRide] = dim.getEntities(query);
+
+      if (!ride) {
+        ride = dim.spawnEntity('mbcc:velocity_cam', pLoc);
+        ride.addTag('playerHandler');
+      }
+      if (!velRide) {
+        velRide = dim.spawnEntity('mbcc:velocity_cam', pLoc);
+        velRide.addTag('velocityHandler');
+        velRide.runCommandAsync(
+          'ride @e[type=mbcc:velocity_cam,tag=playerHandler,c=1] start_riding @s'
+        );
+      }
+      const rPos = velRide.location;
+
+      this.runCommand(`tp ${rPos.x} ${rPos.y} ${rPos.z} ${rot.y} ${rot.x}`);
+      ride.runCommandAsync('ride @p start_riding @s');
+
+      velRide.setVelocity(pos.sub(rPos).toObject());
+    }
   }
-  getProp<p extends keyof Properties>(prop: p): Properties[p] | undefined {
+
+  #createProps() {
     const p = this.#player;
-    return p.getDynamicProperty(prop) as any;
+    const props = {
+      cinematicTime: 0,
+      cinematicMode: 0,
+      cinematicSpeed: 1,
+    };
+    PropertyMap.set(p.id, props);
+    return props;
+  }
+
+  #getProps() {
+    const p = this.#player;
+    let props = PropertyMap.get(p.id);
+    if (!props) props = this.#createProps();
+    return props;
+  }
+
+  getProp<p extends keyof Properties>(prop: p): Properties[p] {
+    // const p = this.#player;
+    const props = this.#getProps();
+    // return p.getDynamicProperty(prop) as any;
+    return props[prop];
   }
   setProp<p extends keyof Properties>(prop: p, value: Properties[p]) {
-    const p = this.#player;
-    return p.setDynamicProperty(prop, value);
+    // const p = this.#player;
+    this.#getProps()[prop] = value;
+    // return p.setDynamicProperty(prop, value);
   }
   removeProp(prop: keyof Properties) {
-    const p = this.#player;
-    return p.removeDynamicProperty(prop);
+    // const p = this.#player;
+    delete this.#getProps()[prop];
+    // return p.removeDynamicProperty(prop);
   }
   runCommand(command: string) {
     return this.#player.runCommandAsync(command);

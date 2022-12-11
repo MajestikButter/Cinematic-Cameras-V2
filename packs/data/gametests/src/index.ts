@@ -143,10 +143,12 @@ world.events.beforeChat.subscribe((evd) => {
       break;
     }
     case 'stop': {
-      let id = sender.getDynamicProperty('cinematicId') as string;
+      let plr = new CinematicPlayer(sender);
+      let id = plr.getProp('cinematicId');
+      if (!id) return sender.tell(`§cNo cinematic is currently playing§r`);
       let cin = cinematics[id];
       if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
-      cin.stop(new CinematicPlayer(sender));
+      cin.stop(plr);
       sender.tell(`§aSuccessfully stopped: ${id}§r`);
       break;
     }
@@ -209,13 +211,14 @@ world.events.beforeChat.subscribe((evd) => {
   }
 });
 
-world.events.worldInitialize.subscribe(({ propertyRegistry: reg }) => {
-  const def = new DynamicPropertiesDefinition();
-  def.defineNumber('cinematicSpeed');
-  def.defineNumber('cinematicTime');
-  def.defineString('cinematicId', 32);
-  reg.registerEntityTypeDynamicProperties(def, MinecraftEntityTypes.player);
-});
+// world.events.worldInitialize.subscribe(({ propertyRegistry: reg }) => {
+//   const def = new DynamicPropertiesDefinition();
+//   def.defineNumber('cinematicSpeed');
+//   def.defineNumber('cinematicTime');
+//   def.defineNumber('cinematicMode');
+//   def.defineString('cinematicId', 32);
+//   reg.registerEntityTypeDynamicProperties(def, MinecraftEntityTypes.player);
+// });
 
 async function itemUse(source: Player, itemId: string) {
   let editor = editors.get(source);
@@ -289,10 +292,11 @@ system.run(function tick() {
       }
     }
 
-    let id = p.getDynamicProperty('cinematicId') as string;
+    let plr = new CinematicPlayer(p);
+    let id = plr.getProp('cinematicId');
     if (!id) continue;
     let cin = cinematics[id];
     if (!cin) continue;
-    cin.tick(new CinematicPlayer(p), delta);
+    cin.tick(plr, delta);
   }
 });
