@@ -4,7 +4,7 @@
     "name": "Cinematic Cameras v2 BP",
     "description": "By MajestikButter",
     "uuid": "ddda925d-cf31-4642-b56e-e4a7a63d2a55",
-    "version": [1, 0, 0],
+    "version": [1, 0, 1],
     "min_engine_version": [1, 19, 50]
   },
   "modules": [
