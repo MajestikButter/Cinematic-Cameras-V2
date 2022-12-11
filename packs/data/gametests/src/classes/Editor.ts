@@ -37,9 +37,18 @@ export class Editor {
 
   newKeyframe() {
     let p = this.#player;
+    let rot = p.rot;
+    let prevRotK = this.cinematic.timeline.getKeyframeBefore(this.cursorTime)
+    if (prevRotK) {
+      let pRot = prevRotK.rot!.value;
+      let dif = Math.abs(rot.y-pRot.y);
+      if (dif > 180) {
+        rot = new Vector3(rot.x, 360+rot.y)
+      }
+    }
     let keyframe = new Keyframe(
       this.#cursorTime,
-      p.rot,
+      rot,
       Interpolation.linear,
       p.pos,
       Interpolation.linear
@@ -64,7 +73,7 @@ export class Editor {
       .textField('Yaw', 'Rotation Yaw', '' + (r?.value.y ?? ''));
 
     const types = this.#cinematic.types;
-    let posInterp = types.pos != CinematicType.linearCatmull;
+    let posInterp = types.pos == CinematicType.linearCatmull;
     if (posInterp) {
       form.dropdown(
         'Position Interpolation',
@@ -72,7 +81,7 @@ export class Editor {
         p?.interp ?? 0
       );
     }
-    let rotInterp = types.rot != CinematicType.linearCatmull;
+    let rotInterp = types.rot == CinematicType.linearCatmull;
     if (rotInterp) {
       form.dropdown(
         'Rotation Interpolation',
@@ -108,14 +117,14 @@ export class Editor {
     let hasPos = false;
     let [x, y, z] = [xs, ys, zs].map((vs) => {
       let v = parseFloat(vs);
-      if (!isNaN(v)) return 0;
+      if (isNaN(v)) return 0;
       hasPos = true;
       return v;
     });
     let hasRot = false;
     let [pitch, yaw] = [pitchs, yaws].map((vs) => {
       let v = parseFloat(vs);
-      if (!isNaN(v)) return 0;
+      if (isNaN(v)) return 0;
       hasRot = true;
       return v;
     });
@@ -181,19 +190,19 @@ export class Editor {
       key = line.getKeyframeAfter(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < 0.1
+        (k) => Math.abs(k.time - newPos) < (0.05 + this.#moveIncrement)
       );
     } else if (delta < 0) {
       key = line.getKeyframeBefore(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < 0.1
+        (k) => Math.abs(k.time - newPos) < (0.05 + this.#moveIncrement)
       );
     }
     if (key) newPos = key.time;
+    this.#cursorTime = newPos;
     let { pos, rot } = this.#cinematic.transformFromTime(newPos);
     this.#player.update(pos, rot);
-    this.#cursorTime = newPos;
   }
 
   play() {
@@ -237,8 +246,9 @@ export class Editor {
   tick() {
     let cin = this.cinematic;
     let length = cin.timeline.length;
+    let currKeyframe = cin.timeline.getKeyframeAt(this.cursorTime)
     this.#player.setActionbar(
-      `Time ${Math.floor(this.cursorTime * 100) / 100} / ${
+      `Keyframe: ${currKeyframe ? currKeyframe.time : "None"}   Time ${Math.floor(this.cursorTime * 100) / 100} / ${
         Math.floor(length * 100) / 100
       }`
     );

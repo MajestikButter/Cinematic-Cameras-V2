@@ -19,6 +19,10 @@ export class Timeline {
     return h;
   }
 
+  constructor() {
+    this.addKeyframe(new Keyframe(0));
+  }
+
   addKeyframe(keyframe: Keyframe) {
     this.#keyframes.set(keyframe.time, keyframe);
   }

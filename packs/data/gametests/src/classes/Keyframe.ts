@@ -85,7 +85,7 @@ export class Keyframe {
       r?.value,
       r?.interp,
       p?.value,
-      interpolation,
+      interpolation
     );
   }
 
@@ -104,10 +104,18 @@ export class Keyframe {
   toJSON() {
     let o: JSONKeyframe = {};
     let p = this.pos;
-    if (p) o.p = [p.interp, ...p.value.toArray()];
+    if (p)
+      o.p = [
+        p.interp,
+        ...p.value.execFunc((_, v) => Math.floor(v * 1000) / 1000).toArray(),
+      ];
     if (this.rot) {
       let r = this.rot;
-      o.r = [r.interp, r.value.x, r.value.y];
+      o.r = [
+        r.interp,
+        Math.floor(r.value.x * 1000) / 1000,
+        Math.floor(r.value.y * 1000) / 1000,
+      ];
     }
     return o;
   }
