@@ -1,6 +1,4 @@
 import {
-  DynamicPropertiesDefinition,
-  MinecraftEntityTypes,
   Player,
   system,
   world,
@@ -8,10 +6,6 @@ import {
 } from '@minecraft/server';
 
 import { Cinematic } from './classes/Cinematic';
-import { Keyframe } from './classes/Keyframe';
-import { Vector3 } from './classes/Vector3';
-import { CinematicType } from './enums/CinematicType';
-import { Interpolation } from './enums/Interpolation';
 import stored from './cinematics';
 import { CinematicPlayer } from './classes/Player';
 import { Editor } from './classes/Editor';
@@ -27,75 +21,6 @@ for (let k in stored) {
   cinematics[k] = Cinematic.fromJSON(k, obj);
 }
 
-let keys = [
-  new Keyframe(0, Vector3.zero, undefined, Vector3.zero),
-  new Keyframe(
-    0.8,
-    undefined,
-    undefined,
-    new Vector3(-3, 10, 6),
-    Interpolation.catmull
-  ),
-  new Keyframe(1.5, new Vector3(30, 30), Interpolation.linear),
-  new Keyframe(
-    2.7,
-    undefined,
-    undefined,
-    new Vector3(-6, 14, 7),
-    Interpolation.catmull
-  ),
-  new Keyframe(4, new Vector3(30, 80), undefined, undefined, undefined),
-  new Keyframe(5.6, new Vector3(30, 150), Interpolation.catmull),
-  new Keyframe(
-    6.9,
-    undefined,
-    undefined,
-    new Vector3(7, 23, 10),
-    Interpolation.linear
-  ),
-  new Keyframe(7.8, new Vector3(30, 80), Interpolation.linear),
-  new Keyframe(9, Vector3.zero, undefined, Vector3.zero),
-];
-
-let testLinear = new Cinematic(
-  'testLinear',
-  CinematicType.linearCatmull,
-  CinematicType.linearCatmull
-);
-let testCatmull = new Cinematic(
-  'testCatmull',
-  CinematicType.linearCatmull,
-  CinematicType.linearCatmull
-);
-let testCubic = new Cinematic(
-  'testCubic',
-  CinematicType.cubic,
-  CinematicType.cubic
-);
-let testMix = new Cinematic(
-  'testMix',
-  CinematicType.linearCatmull,
-  CinematicType.bspline
-);
-let testBspline = new Cinematic(
-  'testBspline',
-  CinematicType.bspline,
-  CinematicType.bspline
-);
-
-for (let key of keys) {
-  testLinear.timeline.addKeyframe(key.rotInterpWith(Interpolation.linear));
-  testCatmull.timeline.addKeyframe(key.rotInterpWith(Interpolation.catmull));
-  testCubic.timeline.addKeyframe(key);
-  testMix.timeline.addKeyframe(key);
-  testBspline.timeline.addKeyframe(key);
-}
-
-cinematics[testLinear.id] = testLinear;
-cinematics[testCatmull.id] = testCatmull;
-cinematics[testCubic.id] = testCubic;
-cinematics[testMix.id] = testMix;
-cinematics[testBspline.id] = testBspline;
 world.events.beforeChat.subscribe((evd) => {
   let { sender, message } = evd;
   if (!message.startsWith('!')) return;

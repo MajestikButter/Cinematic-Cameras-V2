@@ -15,7 +15,7 @@ export class Editor {
   #cursorTime = 0;
   #playbackSpeed = 1;
   #displaySpeed = 2;
-  #moveIncrement = 0.1;
+  #moveIncrement = 0.5;
 
   get cinematic() {
     return this.#cinematic;
@@ -153,9 +153,9 @@ export class Editor {
         types.rot
       )
       .dropdown('Play Mode', ['Teleport'], this.#cinematic.playMode)
-      .slider('Editor Playback Speed', 0.25, 5, 0.25, this.#playbackSpeed)
-      .slider('Editor Display Speed', 1, 4, 0.25, this.#displaySpeed)
-      .slider('Editor Move Increment', 0.1, 0.5, 0.1, this.#moveIncrement);
+      .slider('Editor Playback Speed', 0.2, 5, 0.2, this.#playbackSpeed)
+      .slider('Editor Display Speed', 1, 4, 0.2, this.#displaySpeed)
+      .slider('Editor Move Increment', 0.1, 1, 0.1, this.#moveIncrement);
     let res = await this.#player.show(form);
     if (res.canceled) {
       if (res.cancelationReason == FormCancelationReason.userBusy) {
@@ -210,7 +210,6 @@ export class Editor {
         (k) => Math.abs(k.time - newPos) < 0.05 + this.#moveIncrement
       );
     }
-    console.warn(delta)
     if (key) newPos = key.time;
     this.#cursorTime = newPos;
     let { pos, rot } = this.#cinematic.transformFromTime(newPos);
