@@ -1,5 +1,14 @@
 # Cinematic-Cameras-V2
 
+## How to Use
+1. Download the latest version from the [Releases](https://github.com/MajestikButter/Cinematic-Cameras-V2/releases) page.
+2. Enable the `Beta APIs` and `Holiday Creator Features` experiments.
+3. Apply the pack to your desired world.
+4. Load into the world.
+5. Create a new cinematic using `!new` with the desired cinematic id.
+6. Edit the cinematic using `!edit` with the desired cinematic id.
+
+
 ## Commands
 `!new <cinematicid: string>`
 > Creates a new cinematic. Only saves for the current game session, make sure to use `!export`.
