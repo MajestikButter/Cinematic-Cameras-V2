@@ -174,7 +174,7 @@ export class Editor {
   moveCursor(delta: 1 | 0 | -1) {
     let line = this.#cinematic.timeline;
     let length = line.length;
-    let newPos = Math.min(length, Math.max(0, this.#cursorTime + delta * this.#moveIncrement));
+    let newPos = Math.min(length + 10, Math.max(0, this.#cursorTime + delta * this.#moveIncrement));
 
     let key: Keyframe | undefined;
     if (delta > 0) {
