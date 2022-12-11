@@ -22,3 +22,4 @@
 `!bake <cinematicid: string> [stepSpeed: number]`
 > Prints an mcfunction version of the cinematic to content log. Used to convert cinematics into a non-experimental state.
 
+Thanks to [this video](https://www.youtube.com/watch?v=jvPPXbo87ds) for the lesson on splines and providing the inspiration to tackle this project again.
