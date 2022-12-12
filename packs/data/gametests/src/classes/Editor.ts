@@ -39,21 +39,11 @@ export class Editor {
   newKeyframe() {
     let p = this.#player;
     let rot = p.rot;
-    let prevRotK = this.cinematic.timeline.getKeyframeBefore(this.cursorTime);
-    if (prevRotK) {
-      let pRot = prevRotK.rot!.value;
-      let dif = rot.y - pRot.y;
-      if (dif > 180) {
-        rot = new Vector3(rot.x, rot.y - 360);
-      } else if (dif < -180) {
-        rot = new Vector3(rot.x, rot.y + 360);
-      }
-    }
     let keyframe = new Keyframe(
       this.#cursorTime,
-      rot,
+      rot.execFunc((_, v) => Math.floor(v * 1000) / 1000),
       Interpolation.linear,
-      p.pos,
+      p.pos.execFunc((_, v) => Math.floor(v * 1000) / 1000),
       Interpolation.linear
     );
     this.#cinematic.timeline.addKeyframe(keyframe);
@@ -264,10 +254,17 @@ export class Editor {
     let cin = this.cinematic;
     let length = cin.timeline.length;
     let currKeyframe = cin.timeline.getKeyframeAt(this.cursorTime);
+
+    let { pos, rot } = this.#cinematic.transformFromTime(this.#cursorTime);
     this.#player.setActionbar(
       `Keyframe: ${currKeyframe ? currKeyframe.time : 'None'}   Time ${
         Math.floor(this.cursorTime * 100) / 100
-      } / ${Math.floor(length * 100) / 100}`
+      } / ${Math.floor(length * 100) / 100}\nPosition: ${pos
+        .execFunc((_, v) => Math.floor(v * 1000) / 1000)
+        .toArray()
+        .join(' ')}\nRotation: ${Math.floor(rot.x * 1000) / 1000} ${
+        Math.floor(rot.y * 1000) / 1000
+      }`
     );
     if (system.currentTick % 20 != 0) return;
     cin.visualize(0, this.#displaySpeed, undefined, undefined, '', '');

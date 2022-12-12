@@ -73,6 +73,12 @@ export class Cinematic {
     this.#playMode = playMode;
   }
 
+  getInfluence(t: number, matrix: Matrix, scale = 1) {
+    let input = new Matrix([[1, t, Math.pow(t, 2), Math.pow(t, 3)]]);
+    if (scale != 1) input = input.scale(scale);
+    return matrix.dot(input).asArray()[0];
+  }
+
   getPoint(
     p0: Vector3,
     p1: Vector3,
@@ -82,9 +88,7 @@ export class Cinematic {
     matrix: Matrix,
     scale = 1
   ) {
-    let input = new Matrix([[1, t, Math.pow(t, 2), Math.pow(t, 3)]]);
-    if (scale != 1) input = input.scale(scale);
-    let infl = matrix.dot(input).asArray()[0];
+    let infl = this.getInfluence(t, matrix, scale);
 
     p0 = p0.scale(infl[0]);
     p1 = p1.scale(infl[1]);
@@ -92,6 +96,19 @@ export class Cinematic {
     p3 = p3.scale(infl[3]);
 
     return p0.add(p1).add(p2).add(p3);
+  }
+
+  getValue(
+    v0: number,
+    v1: number,
+    v2: number,
+    v3: number,
+    t: number,
+    matrix: Matrix,
+    scale = 1
+  ) {
+    let infl = this.getInfluence(t, matrix, scale);
+    return v0 * infl[0] + v1 * infl[1] + v2 * infl[2] + v3 * infl[3];
   }
 
   transformFromTime(time: number) {
@@ -144,8 +161,30 @@ export class Cinematic {
     let pt = (time - currPosK.time) / pd;
     let rt = (time - currRotK.time) / rd;
 
+    let toDeg = 180 / Math.PI;
+    let toRad = Math.PI / 180;
+
+    function yDir(vec: Vector3) {
+      return new Vector3(
+        Math.cos(vec.y * toRad),
+        Math.sin(vec.y * toRad)
+      );
+    }
+
+    let prevRotX = prevRot.value.x;
+    let currRotX = currRot.value.x;
+    let nextRotX = nextRot.value.x;
+    let nextRot2X = nextRot2.value.x;
+
+    let prevRotY = yDir(prevRot.value);
+    let currRotY = yDir(currRot.value);
+    let nextRotY = yDir(nextRot.value);
+    let nextRot2Y = yDir(nextRot2.value);
+
     let pos = Vector3.zero;
-    let rot = Vector3.zero;
+    let rotX = 0;
+    let rotY = Vector3.zero;
+
     switch (this.#posType) {
       case CinematicType.bspline: {
         pos = this.getPoint(
@@ -166,8 +205,7 @@ export class Cinematic {
           nextPos2.value,
           nextPos.value,
           pt,
-          CubicMatrix,
-          1 / 6
+          CubicMatrix
         );
         break;
       }
@@ -200,11 +238,20 @@ export class Cinematic {
     }
     switch (this.#rotType) {
       case CinematicType.bspline: {
-        rot = this.getPoint(
-          prevRot.value,
-          currRot.value,
-          nextRot.value,
-          nextRot2.value,
+        rotX = this.getValue(
+          prevRotX,
+          currRotX,
+          nextRotX,
+          nextRot2X,
+          rt,
+          BsplineMatrix,
+          1 / 6
+        );
+        rotY = this.getPoint(
+          prevRotY,
+          currRotY,
+          nextRotY,
+          nextRot2Y,
           rt,
           BsplineMatrix,
           1 / 6
@@ -212,14 +259,21 @@ export class Cinematic {
         break;
       }
       case CinematicType.cubic: {
-        rot = this.getPoint(
-          currRot.value,
-          prevRot.value,
-          nextRot2.value,
-          nextRot.value,
+        rotX = this.getValue(
+          prevRotX,
+          currRotX,
+          nextRotX,
+          nextRot2X,
           rt,
-          CubicMatrix,
-          1 / 6
+          CubicMatrix
+        );
+        rotY = this.getPoint(
+          prevRotY,
+          currRotY,
+          nextRotY,
+          nextRot2Y,
+          rt,
+          CubicMatrix
         );
         break;
       }
@@ -235,23 +289,33 @@ export class Cinematic {
           }
         }
         if (rMatrix) {
-          rot = this.getPoint(
-            prevRot.value,
-            currRot.value,
-            nextRot.value,
-            nextRot2.value,
+          rotX = this.getValue(
+            prevRotX,
+            currRotX,
+            nextRotX,
+            nextRot2X,
+            rt,
+            rMatrix,
+            rScale
+          );
+          rotY = this.getPoint(
+            prevRotY,
+            currRotY,
+            nextRotY,
+            nextRot2Y,
             rt,
             rMatrix,
             rScale
           );
         } else {
-          rot = currRot.value.lerp(nextRot.value, rt);
+          rotX = currRot.value.lerp(nextRot.value, rt).x;
+          rotY = currRotY.lerp(nextRotY, rt);
         }
         break;
       }
     }
 
-    return { pos, rot };
+    return { pos, rot: new Vector3(rotX, Math.atan2(rotY.y, rotY.x) * toDeg) };
   }
 
   play(player: CinematicPlayer, start = 0, speed = 1, editor = false) {
