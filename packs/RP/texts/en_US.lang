@@ -1,4 +1,4 @@
-item.mbcc:play=Play Cinematic From Cursor
+item.mbcc:play=Play Cinematic from Cursor
 item.mbcc:stop=Stop Cinematic
 
 item.mbcc:close=Close Editor
