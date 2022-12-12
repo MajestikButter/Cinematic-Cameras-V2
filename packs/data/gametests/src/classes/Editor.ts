@@ -42,9 +42,11 @@ export class Editor {
     let prevRotK = this.cinematic.timeline.getKeyframeBefore(this.cursorTime);
     if (prevRotK) {
       let pRot = prevRotK.rot!.value;
-      let dif = Math.abs(rot.y - pRot.y);
+      let dif = rot.y - pRot.y;
       if (dif > 180) {
-        rot = new Vector3(rot.x, 360 + rot.y);
+        rot = new Vector3(rot.x, rot.y - 360);
+      } else if (dif < -180) {
+        rot = new Vector3(rot.x, rot.y + 360);
       }
     }
     let keyframe = new Keyframe(
