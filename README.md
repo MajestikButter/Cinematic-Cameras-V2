@@ -10,7 +10,7 @@
 
 
 ## Commands
-`!new <cinematicid: string>`
+`!new <cinematicid: string> [data: JSONCinematic]`
 > Creates a new cinematic. Only saves for the current game session, make sure to use `!export`.
 
 `!edit <cinematicid: string>`

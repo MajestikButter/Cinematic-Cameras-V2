@@ -21,20 +21,36 @@ for (let k in stored) {
   cinematics[k] = Cinematic.fromJSON(k, obj);
 }
 
-world.events.beforeChat.subscribe((evd) => {
-  let { sender, message } = evd;
+function handleCommand(message: string, sender: Player) {
   if (!message.startsWith('!')) return;
-  evd.cancel = true;
+
   let args = message.split(' ');
   let cmd = args[0].slice(1);
   switch (cmd) {
     case 'new': {
-      let id = args[1];
+      let parsed = message.match(/!new\s*(\w+)?(?:\s+(.+))?/);
+      if (!parsed)
+        return sender.tell(
+          `§cAn unexpected error occurred while parsing the command§r`
+        );
+      let id = parsed[1];
       if (!id)
         return sender.tell(`§cSupply an id in order to create a cinematic§r`);
       let cin = cinematics[id];
       if (cin) return sender.tell(`§cFound existing cinematic: ${id}§r`);
-      cinematics[id] = new Cinematic(id);
+      let data = parsed[2];
+      if (!data) {
+        cinematics[id] = new Cinematic(id);
+      } else {
+        try {
+          let d = JSON.parse(data);
+          cinematics[id] = Cinematic.fromJSON(id, d);
+        } catch {
+          return sender.tell(
+            `§cAn error occured while parsing the supplied data§r`
+          );
+        }
+      }
       sender.tell(`§aSuccessfully created cinematic: ${id}§r`);
       break;
     }
@@ -138,6 +154,13 @@ world.events.beforeChat.subscribe((evd) => {
       sender.tell(`§cNo command found: ${cmd}§r`);
     }
   }
+}
+
+world.events.beforeChat.subscribe((evd) => {
+  let { sender, message } = evd;
+  if (!message.startsWith('!')) return;
+  evd.cancel = true;
+  handleCommand(message, sender);
 });
 
 // world.events.worldInitialize.subscribe(({ propertyRegistry: reg }) => {
