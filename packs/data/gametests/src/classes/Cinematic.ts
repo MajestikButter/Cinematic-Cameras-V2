@@ -124,12 +124,21 @@ export class Cinematic {
     let nextPosK2 = line.getPosKeyframeAfter(time, false, nextPosK);
     let nextRotK2 = line.getRotKeyframeAfter(time, false, nextRotK);
 
-    if (!prevPosK)
-      prevPosK = new Keyframe(0, undefined, undefined, Vector3.zero);
-    if (!prevRotK) prevRotK = new Keyframe(0, Vector3.zero);
+    if (!prevPosK) {
+      if (currPosK) {
+        prevPosK = new Keyframe(0, undefined, undefined, currPosK.pos?.value);
+      } else prevPosK = new Keyframe(0, undefined, undefined, Vector3.zero);
+    }
+    if (!prevRotK) {
+      if (currRotK) {
+        prevRotK = new Keyframe(0, currRotK.rot?.value);
+      } else prevRotK = new Keyframe(0, Vector3.zero);
+    }
+
     if (!currPosK)
       currPosK = new Keyframe(0, undefined, undefined, prevPosK.pos?.value);
     if (!currRotK) currRotK = new Keyframe(0, prevRotK.rot?.value);
+
     if (!nextPosK)
       nextPosK = new Keyframe(
         length,
@@ -165,10 +174,7 @@ export class Cinematic {
     let toRad = Math.PI / 180;
 
     function yDir(vec: Vector3) {
-      return new Vector3(
-        Math.cos(vec.y * toRad),
-        Math.sin(vec.y * toRad)
-      );
+      return new Vector3(Math.cos(vec.y * toRad), Math.sin(vec.y * toRad));
     }
 
     let prevRotX = prevRot.value.x;
