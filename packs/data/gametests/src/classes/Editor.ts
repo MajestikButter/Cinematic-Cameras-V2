@@ -247,8 +247,8 @@ export class Editor {
       'move_left',
       'play',
       'move_right',
-      'edit_keyframe',
       'new_keyframe',
+      'edit_keyframe',
       'settings',
     ];
     for (let i = 0; i < hotbar.length; i++) {
