@@ -6,16 +6,17 @@
       "category": "Equipment"
     },
     "components": {
+      "minecraft:creative_category": { "parent": "" },
       "minecraft:icon": {
-        "texture": "stick"
+        "texture": "mbcc_close"
       },
       "minecraft:render_offsets": {
         "main_hand": {
           "first_person": {
-            "scale": [0,0,0]
+            "scale": [0, 0, 0]
           },
           "third_person": {
-            "scale": [0,0,0]
+            "scale": [0, 0, 0]
           }
         }
       }

@@ -149,9 +149,18 @@ world.events.beforeChat.subscribe((evd) => {
 //   reg.registerEntityTypeDynamicProperties(def, MinecraftEntityTypes.player);
 // });
 
+function clearItem(player: Player, slot: number) {
+  player.runCommandAsync(`replaceitem entity @s slot.hotbar ${slot} air`);
+}
+
 async function itemUse(source: Player, itemId: string) {
   let editor = editors.get(source);
-  if (!editor) return;
+  if (!editor) {
+    if (itemId == 'mbcc:close') {
+      for (let i = 0; i < 9; i++) clearItem(source, i);
+    }
+    return;
+  }
   switch (itemId) {
     case 'mbcc:play': {
       editor.play();

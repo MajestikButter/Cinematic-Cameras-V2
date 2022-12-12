@@ -1,0 +1,12 @@
+item.mbcc:play=Play Cinematic
+item.mbcc:stop=Stop Cinematic
+
+item.mbcc:close=Close Editor
+item.mbcc:settings=Cinematic and Editor Settings
+
+item.mbcc:delete_keyframe=Delete Keyframe
+item.mbcc:edit_keyframe=Edit Keyframe
+item.mbcc:new_keyframe=New Keyframe
+
+item.mbcc:move_left=Move Cursor Left
+item.mbcc:move_right=Move Cursor Right

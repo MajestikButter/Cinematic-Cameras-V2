@@ -6,8 +6,9 @@
       "category": "Equipment"
     },
     "components": {
+      "minecraft:creative_category": { "parent": "" },
       "minecraft:icon": {
-        "texture": "stick"
+        "texture": "mbcc_move_right"
       },
       "minecraft:render_offsets": {
         "main_hand": {
