@@ -5,12 +5,12 @@
 2. Enable the `Beta APIs` and `Holiday Creator Features` experiments.
 3. Apply the pack to your desired world.
 4. Load into the world.
-5. Create a new cinematic using `!new` with the desired cinematic id.
-6. Edit the cinematic using `!edit` with the desired cinematic id.
+5. Create a new cinematic using [`!new`](#new-cinematicid-string-data-jsoncinematic) with the desired cinematic id.
+6. Edit the cinematic using [`!edit`](#edit-cinematicid-string) with the desired cinematic id.
 
 
 ## Saving/Exporting Cinematics
-1. Run `!export` with the desired cinematicId.
+1. Run [`!export`](#export-cinematicid-string) with the desired cinematicId.
 2. Close the chat gui.
 3. Wait for the `Copy Paste` form to appear.
 4. Follow the directions on the form.
@@ -25,25 +25,25 @@
 
 
 ## Commands
-### `!new <cinematicid: string> [data: JSONCinematic]`
+#### `!new <cinematicId: string> [data: JSONCinematic]`
 > Creates a new cinematic. Only saves for the current game session, make sure to use `!export`.
 
-### `!edit <cinematicid: string>`
+#### `!edit <cinematicId: string>`
 > Opens the editor for the specified cinematic. Only saves for the current game session, make sure to use `!export` after your done.
 
-### `!play <cinematicid: string> [start: number] [speed: number]`
+#### `!play <cinematicId: string> [start: number] [speed: number]`
 > Plays the specified cinematic. 
 
-### `!stop`
+#### `!stop`
 > Stops playing the current cinematic.
 
-### `!visualize <cinematicid: string> [start: number] [speed: number]`
+#### `!visualize <cinematicId: string> [start: number] [speed: number]`
 > Visualizes the path a cinematic takes using particles.
 
-### `!export <cinematicid: string>`
+#### `!export <cinematicId: string>`
 > Prompts the `Copy Paste` form with an object representation of the cinematic. Used to save cinematics in an editable state.
 
-### `!bake <cinematicid: string> [stepSpeed: number]`
+#### `!bake <cinematicId: string> [stepSpeed: number]`
 > Prompts the `Copy Paste` form with an mcfunction version of the cinematic. Used to convert cinematics into a non-experimental state via commands.
 
 Thanks to [this video](https://www.youtube.com/watch?v=jvPPXbo87ds) for the lesson on splines and providing the inspiration to tackle this project again.
