@@ -23,13 +23,22 @@
 3. Open the `/cinematics.js` file in a text editor.
 4. Paste the cinematic data into the object, with the key being the desired identifier for the cinematic.
 
+## Using Autosave
+Autosave is automatically enabled and saves the currently edited cinematic every 30 seconds.
+You can load the autosave by running `!edit autosave`. This will load the last autosaved cinematic in the event that
+your game exits or crashes while editing a cinematic.
+Note that this only saves one cinematic at a time.
+
 
 ## Commands
 #### `!new <cinematicId: string> [data: JSONCinematic]`
 > Creates a new cinematic. Only saves for the current game session, make sure to use `!export`.
 
 #### `!edit <cinematicId: string>`
-> Opens the editor for the specified cinematic. Only saves for the current game session, make sure to use `!export` after your done.
+> Opens the editor for the specified cinematic. Only saves for the current game session, make sure to use `!export` after you're done.
+
+#### `!save <cinematicId: string>`
+> Saves the cinematic that is currently being edited with a new cinematic id.
 
 #### `!play <cinematicId: string> [start: number] [speed: number]`
 > Plays the specified cinematic. 
