@@ -12,6 +12,10 @@ const PropertyMap = new Map<string, Properties>();
 export class CinematicPlayer {
   #player: Player;
 
+  get dimension() {
+    return this.#player.dimension;
+  }
+
   get pos() {
     let p = this.#player;
     return new Vector3(p.location);

@@ -54,7 +54,7 @@ export class Keyframe {
     pos?: Vector3,
     posInterp = Interpolation.linear
   ) {
-    this.#time = time;
+    this.#time = Math.floor(time * 100) / 100;
     if (pos) this.#pos = { value: pos, interp: posInterp };
     if (rot) this.#rot = { value: rot, interp: rotInterp };
   }

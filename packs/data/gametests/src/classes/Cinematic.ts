@@ -115,6 +115,8 @@ export class Cinematic {
     const line = this.timeline;
     const length = line.length;
 
+    if (time > length) return;
+
     let currPosK = line.getPosKeyframeBefore(time, true);
     let currRotK = line.getRotKeyframeBefore(time, true);
     let prevPosK = line.getPosKeyframeBefore(time, false, currPosK);
@@ -166,7 +168,9 @@ export class Cinematic {
     let nextRot2 = nextRotK2.rot!;
 
     let pd = nextPosK.time - currPosK.time;
+    if (!pd || isNaN(pd)) pd = 0.05;
     let rd = nextRotK.time - currRotK.time;
+    if (!rd || isNaN(pd)) rd = 0.05;
     let pt = (time - currPosK.time) / pd;
     let rt = (time - currRotK.time) / rd;
 
@@ -338,8 +342,11 @@ export class Cinematic {
         break;
       }
     }
-    const { pos, rot } = this.transformFromTime(start);
-    player.update(pos, rot, PlayMode.teleport);
+    let transform = this.transformFromTime(start);
+    if (transform) {
+      const { pos, rot } = transform;
+      player.update(pos, rot, PlayMode.teleport);
+    }
 
     if (editor) player.runCommand('gamemode creative');
 
@@ -372,7 +379,9 @@ export class Cinematic {
 
     if (time > this.#timeline.length) return this.stop(player);
 
-    let { pos, rot } = this.transformFromTime(time);
+    let transform = this.transformFromTime(time);
+    if (!transform) return;
+    let { pos, rot } = transform;
     let mode = player.getProp('cinematicMode') ?? PlayMode.teleport;
     player.update(pos, rot, mode);
   }
@@ -383,13 +392,13 @@ export class Cinematic {
     particle = 'minecraft:basic_flame_particle',
     keyframeParticle = 'minecraft:endrod',
     prevParticle = 'minecraft:villager_angry',
-    nextParticle = 'minecraft:villager_happy'
+    nextParticle = 'minecraft:villager_happy',
+    dim = world.getDimension('overworld')
   ) {
     return new Promise<void>((resolve, reject) => {
       if (!MolangVariableMap) return reject('missing required native classes');
       let length = this.#timeline.length;
       let stime = new Date().getTime() + start;
-      const dim = world.getDimension('overworld');
       const molang = new MolangVariableMap();
       let keySchedule: number;
       keySchedule = system.runSchedule(() => {
@@ -421,8 +430,17 @@ export class Cinematic {
 
         if (!ppos || !npos) return;
 
-        let { pos, rot } = this.transformFromTime(time);
-        dim.spawnParticle(particle, new Location(pos.x, pos.y, pos.z), molang);
+        let transform = this.transformFromTime(time);
+        if (transform) {
+          let { pos, rot } = transform;
+          if (!isNaN(pos.x) && !isNaN(pos.y) && !isNaN(pos.z)) {
+            dim.spawnParticle(
+              particle,
+              new Location(pos.x, pos.y, pos.z),
+              molang
+            );
+          }
+        }
         dim.spawnParticle(
           prevParticle,
           new Location(ppos.value.x, ppos.value.y, ppos.value.z),

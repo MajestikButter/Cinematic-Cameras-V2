@@ -3,6 +3,7 @@ import {
   system,
   world,
   EntityInventoryComponent,
+  DynamicPropertiesDefinition,
 } from '@minecraft/server';
 
 import { Cinematic } from './classes/Cinematic';
@@ -21,7 +22,7 @@ for (let k in stored) {
   cinematics[k] = Cinematic.fromJSON(k, obj);
 }
 
-function handleCommand(message: string, sender: Player) {
+async function handleCommand(message: string, sender: Player) {
   if (!message.startsWith('!')) return;
 
   let args = message.split(' ');
@@ -57,9 +58,31 @@ function handleCommand(message: string, sender: Player) {
     case 'edit': {
       let id = args[1];
       let cin = cinematics[id];
+      if (!cin && id == 'autosave') {
+        let json = world.getDynamicProperty('autosave') as string;
+        if (json) {
+          try {
+            cin = Cinematic.fromJSON('autosave', JSON.parse(json));
+            cinematics.autosave = cin;
+          } catch {}
+        }
+      }
       if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
       editors.set(sender, new Editor(new CinematicPlayer(sender), cin));
       sender.tell(`§aSuccessfully started editing: ${id}§r`);
+      break;
+    }
+    case 'save': {
+      let id = args[1];
+      let editor = editors.get(sender);
+      if (!editor)
+        return sender.tell(
+          `§cUnable to save, you are currently not editing a cinematic§r`
+        );
+      cinematics[id] = editor.cinematic;
+      sender.tell(
+        `§aSuccessfully saved §e${editor.cinematic.id}§a as §b${id}§r`
+      );
       break;
     }
     case 'play': {
@@ -135,15 +158,24 @@ function handleCommand(message: string, sender: Player) {
       if (!speedNum || isNaN(speedNum)) speedNum = 1;
       speedNum /= 20;
 
+      sender.tell(`§eBaking: ${id}§r`);
       let res = '';
+      let stepStart = new Date().getTime()
       for (let i = 0; i * speedNum < cin.timeline.length; i++) {
         let time = i * speedNum;
-        const { pos, rot } = cin.transformFromTime(time);
+        let transform = cin.transformFromTime(time);
+        if (!transform) continue;
+        const { pos, rot } = transform;
         res += `execute if score @s frame matches ${i} run tp ${pos.x.toFixed(
           3
         )} ${pos.y.toFixed(3)} ${pos.z.toFixed(3)} ${rot.y.toFixed(
           3
         )} ${rot.x.toFixed(3)}\n`;
+        if (new Date().getTime() - stepStart > 200) {
+          sender.tell(`§eBake progress: ${(time/cin.timeline.length*100).toFixed(2)}%%§r`);
+          await null;
+          stepStart = new Date().getTime();
+        }
       }
       let plr = new CinematicPlayer(sender);
       cin.promptCopy(plr, res);
@@ -161,6 +193,12 @@ world.events.beforeChat.subscribe((evd) => {
   if (!message.startsWith('!')) return;
   evd.cancel = true;
   handleCommand(message, sender);
+});
+
+world.events.worldInitialize.subscribe(({ propertyRegistry: reg }) => {
+  const def = new DynamicPropertiesDefinition();
+  def.defineString('autosave', 9000);
+  reg.registerWorldDynamicProperties(def);
 });
 
 // world.events.worldInitialize.subscribe(({ propertyRegistry: reg }) => {
@@ -232,6 +270,7 @@ world.events.itemUse.subscribe(async ({ source, item }) => {
   itemUse(source, item.typeId);
 });
 
+let lastSave = new Date().getTime();
 let prevRun = new Date().getTime();
 system.run(function tick() {
   system.run(tick);
@@ -240,9 +279,19 @@ system.run(function tick() {
   let delta = (time - prevRun) / 1000;
   prevRun = time;
 
+  let unsaved = time - lastSave >= 30000;
+
   for (let p of world.getAllPlayers()) {
     let editor = editors.get(p);
     if (editor) {
+      if (unsaved) {
+        world.setDynamicProperty(
+          'autosave',
+          JSON.stringify(editor.cinematic.toJSON())
+        );
+        lastSave = time;
+        unsaved = false;
+      }
       editor.tick();
       if (p.isSneaking) {
         let inv = p.getComponent('inventory') as EntityInventoryComponent;

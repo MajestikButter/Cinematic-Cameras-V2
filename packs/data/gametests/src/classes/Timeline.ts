@@ -28,6 +28,15 @@ export class Timeline {
   }
   removeKeyframe(keyframe: Keyframe) {
     this.#keyframes.delete(keyframe.time);
+    if (!this.getKeyframeAt(0)) this.addKeyframe(new Keyframe(0));
+  }
+  moveKeyframe(keyframe: Keyframe, toTime: number) {
+    let r = keyframe.rot;
+    let p = keyframe.pos;
+    this.addKeyframe(
+      new Keyframe(toTime, r?.value, r?.interp, p?.value, p?.interp)
+    );
+    this.removeKeyframe(keyframe);
   }
   getKeyframeAt(time: number) {
     return this.#keyframes.get(time);

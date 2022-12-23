@@ -16,6 +16,7 @@ export class Editor {
   #playbackSpeed = 1;
   #displaySpeed = 2;
   #moveIncrement = 0.5;
+  #particles = true;
 
   get cinematic() {
     return this.#cinematic;
@@ -59,6 +60,7 @@ export class Editor {
 
     const form = new ModalFormData()
       .title('Edit Keyframe')
+      .textField('Keyframe Position', '', '' + keyframe.time)
       .textField('X', 'Position X', '' + (p?.value.x ?? ''))
       .textField('Y', 'Position Y', '' + (p?.value.y ?? ''))
       .textField('Z', 'Position Z', '' + (p?.value.z ?? ''))
@@ -91,15 +93,17 @@ export class Editor {
       return;
     }
     if (!res.formValues) return;
-    let [xs, ys, zs, pitchs, yaws, interp0, interp1] = res.formValues as [
-      string,
-      string,
-      string,
-      string,
-      string,
-      number,
-      number | undefined
-    ];
+    let [timeCode, xs, ys, zs, pitchs, yaws, interp0, interp1] =
+      res.formValues as [
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        number,
+        number | undefined
+      ];
 
     let posInterpType = p?.interp;
     if (posInterp) posInterpType = interp0;
@@ -125,9 +129,11 @@ export class Editor {
     let rot = hasRot ? new Vector3(pitch, yaw) : undefined;
 
     let line = this.#cinematic.timeline;
-    line.addKeyframe(
-      new Keyframe(time, rot, rotInterpType, pos, posInterpType)
-    );
+    let t = parseFloat(timeCode);
+    if (isNaN(t) || typeof t != 'number') t = time;
+    line.removeKeyframe(keyframe);
+    line.addKeyframe(new Keyframe(t, rot, rotInterpType, pos, posInterpType));
+    this.#cursorTime = t;
   }
 
   async editSettings() {
@@ -145,9 +151,28 @@ export class Editor {
         types.rot
       )
       .dropdown('Play Mode', ['Teleport'], this.#cinematic.playMode)
-      .slider('Editor Playback Speed', 0.2, 5, 0.2, this.#playbackSpeed)
-      .slider('Editor Display Speed', 1, 4, 0.2, this.#displaySpeed)
-      .slider('Editor Move Increment', 0.1, 1, 0.1, this.#moveIncrement);
+      .slider(
+        'Editor Playback Speed (1/10 Sec)',
+        1,
+        100,
+        1,
+        this.#playbackSpeed * 10
+      )
+      .slider(
+        'Editor Particle Speed (1/10 Sec)',
+        1,
+        100,
+        1,
+        this.#displaySpeed * 10
+      )
+      .slider(
+        'Editor Move Increment (1/10 Sec)',
+        1,
+        20,
+        1,
+        this.#moveIncrement * 10
+      )
+      .toggle('Editor Particles Enabled', this.#particles);
     let res = await this.#player.show(form);
     if (res.canceled) {
       if (res.cancelationReason == FormCancelationReason.userBusy) {
@@ -156,22 +181,24 @@ export class Editor {
       return;
     }
     if (!res.formValues) return;
-    let [posType, rotType, playMode, playback, display, moveIncre] =
+    let [posType, rotType, playMode, playback, display, moveIncre, particles] =
       res.formValues as [
         CinematicType,
         CinematicType,
         PlayMode,
         number,
         number,
-        number
+        number,
+        boolean
       ];
 
     this.#cinematic = this.#cinematic
       .withTypes(posType, rotType)
       .withPlayMode(playMode);
-    this.#playbackSpeed = playback;
-    this.#displaySpeed = display;
-    this.#moveIncrement = moveIncre;
+    this.#playbackSpeed = playback / 10;
+    this.#displaySpeed = display / 10;
+    this.#moveIncrement = moveIncre / 10;
+    this.#particles = particles;
   }
 
   deleteKeyframe() {
@@ -193,18 +220,20 @@ export class Editor {
       key = line.getKeyframeAfter(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < 0.05 + this.#moveIncrement
+        (k) => Math.abs(k.time - newPos) < 0.05
       );
     } else if (delta < 0) {
       key = line.getKeyframeBefore(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < 0.05 + this.#moveIncrement
+        (k) => Math.abs(k.time - newPos) < 0.05
       );
     }
     if (key) newPos = key.time;
     this.#cursorTime = newPos;
-    let { pos, rot } = this.#cinematic.transformFromTime(newPos);
+    let transform = this.#cinematic.transformFromTime(newPos);
+    if (!transform) return;
+    const { pos, rot } = transform;
     this.#player.update(pos, rot, PlayMode.teleport);
   }
 
@@ -255,18 +284,33 @@ export class Editor {
     let length = cin.timeline.length;
     let currKeyframe = cin.timeline.getKeyframeAt(this.cursorTime);
 
-    let { pos, rot } = this.#cinematic.transformFromTime(this.#cursorTime);
-    this.#player.setActionbar(
-      `Keyframe: ${currKeyframe ? currKeyframe.time : 'None'}   Time ${
-        Math.floor(this.cursorTime * 100) / 100
-      } / ${Math.floor(length * 100) / 100}\nPosition: ${pos
+    let transform = this.#cinematic.transformFromTime(this.#cursorTime);
+    let suff = '';
+    if (transform) {
+      let { pos, rot } = transform;
+      suff = `\nPosition: ${pos
         .execFunc((_, v) => Math.floor(v * 1000) / 1000)
         .toArray()
         .join(' ')}\nRotation: ${Math.floor(rot.x * 1000) / 1000} ${
         Math.floor(rot.y * 1000) / 1000
-      }`
+      }`;
+    }
+    this.#player.setActionbar(
+      `Keyframe: ${currKeyframe ? currKeyframe.time : 'None'}   Time ${
+        Math.floor(this.cursorTime * 100) / 100
+      } / ${Math.floor(length * 100) / 100}${suff}`
     );
     if (system.currentTick % 20 != 0) return;
-    cin.visualize(0, this.#displaySpeed, undefined, undefined, '', '');
+    if (this.#particles) {
+      cin.visualize(
+        0,
+        this.#displaySpeed,
+        undefined,
+        undefined,
+        '',
+        '',
+        this.#player.dimension
+      );
+    }
   }
 }
