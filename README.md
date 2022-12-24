@@ -7,6 +7,7 @@
 4. Load into the world.
 5. Create a new cinematic using [`!new`](#new-cinematicid-string-data-jsoncinematic) with the desired cinematic id.
 6. Edit the cinematic using [`!edit`](#edit-cinematicid-string) with the desired cinematic id.
+7. ***Optional***. You can run `/gamerule showtags false` to disable some of the annoying item text.
 
 
 ## Saving/Exporting Cinematics
