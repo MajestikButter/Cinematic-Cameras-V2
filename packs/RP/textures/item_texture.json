@@ -1,31 +1,13 @@
 {
   "texture_data": {
-    "mbcc_close": {
-      "textures": ["textures/blocks/barrier"]
-    },
-    "mbcc_delete_keyframe": {
-      "textures": ["textures/items/gunpowder"]
-    },
-    "mbcc_edit_keyframe": {
-      "textures": ["textures/ui/pencil_edit_icon"]
-    },
-    "mbcc_new_keyframe": {
-      "textures": ["textures/items/emerald"]
-    },
-    "mbcc_move_left": {
-      "textures": ["textures/items/arrow"]
-    },
-    "mbcc_move_right": {
-      "textures": ["textures/items/arrow"]
-    },
-    "mbcc_play": {
-      "textures": ["textures/items/diamond"]
-    },
-    "mbcc_stop": {
-      "textures": ["textures/blocks/redstone_block"]
-    },
-    "mbcc_settings": {
-      "textures": ["textures/items/redstone_dust"]
-    }
+    "mbcc_close": { "textures": ["textures/ui/x_default"] },
+    "mbcc_delete_keyframe": { "textures": ["textures/ui/trash_light"] },
+    "mbcc_edit_keyframe": { "textures": ["textures/ui/pencil_edit_icon"] },
+    "mbcc_new_keyframe": { "textures": ["textures/ui/plus"] },
+    "mbcc_move_left": { "textures": ["textures/ui/arrow_left"] },
+    "mbcc_move_right": { "textures": ["textures/ui/arrow_right"] },
+    "mbcc_play": { "textures": ["textures/ui/store_play_button"] },
+    "mbcc_stop": { "textures": ["textures/blocks/redstone_block"] },
+    "mbcc_settings": { "textures": ["textures/ui/automation_glyph"] }
   }
 }
