@@ -31,11 +31,7 @@ export class Timeline {
     if (!this.getKeyframeAt(0)) this.addKeyframe(new Keyframe(0));
   }
   moveKeyframe(keyframe: Keyframe, toTime: number) {
-    let r = keyframe.rot;
-    let p = keyframe.pos;
-    this.addKeyframe(
-      new Keyframe(toTime, r?.value, r?.interp, p?.value, p?.interp)
-    );
+    this.addKeyframe(keyframe.atTimeCode(toTime));
     this.removeKeyframe(keyframe);
   }
   getKeyframeAt(time: number) {

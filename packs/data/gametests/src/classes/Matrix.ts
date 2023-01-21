@@ -37,7 +37,7 @@ export class Matrix {
     return new Matrix(res);
   }
 
-  dot(matrix: Matrix) {
+  mul(matrix: Matrix) {
     const arr = matrix.asArray();
     let res: number[][] = [];
 		for (let i0 = 0; i0 < arr.length; i0++) {

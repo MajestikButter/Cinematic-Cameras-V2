@@ -9,6 +9,14 @@
 6. Edit the cinematic using [`!edit`](#edit-cinematicid-string) with the desired cinematic id.
 7. ***Optional***. You can run `/gamerule showtags false` to disable some of the annoying item text.
 
+## Setting Up Keyframes
+1. Navigate to the `New Keyframe` item in the editor hotbar and use it
+    - A new keyframe should now be created with your rotation and position
+3. Navigate to the `Edit Keyframe` item in the editor hotbar and use it
+    - You can edit any settings related to this specific keyframe here
+    - You may move the keyframe to a different time code by editing the time setting
+    - Leaving all fields for position or rotation blank will make the keyframe be ignored for position and rotation related interpolation
+    - You may specify a command to be ran when a keyframe is reached here
 
 ## Saving/Exporting Cinematics
 1. Run [`!export`](#export-cinematicid-string) with the desired cinematicId.

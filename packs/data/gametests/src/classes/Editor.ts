@@ -43,9 +43,12 @@ export class Editor {
     let keyframe = new Keyframe(
       this.#cursorTime,
       rot.execFunc((_, v) => Math.floor(v * 1000) / 1000),
-      Interpolation.linear,
+      Interpolation.catmull,
+      false,
       p.pos.execFunc((_, v) => Math.floor(v * 1000) / 1000),
-      Interpolation.linear
+      Interpolation.catmull,
+      false,
+      ''
     );
     this.#cinematic.timeline.addKeyframe(keyframe);
     return keyframe;
@@ -61,14 +64,17 @@ export class Editor {
     const form = new ModalFormData()
       .title('Edit Keyframe')
       .textField('Keyframe Position', '', '' + keyframe.time)
+      .textField('Command', 'Command to run', keyframe.command)
+      .toggle('Constant Position', p?.constant ?? false)
       .textField('X', 'Position X', '' + (p?.value.x ?? ''))
       .textField('Y', 'Position Y', '' + (p?.value.y ?? ''))
       .textField('Z', 'Position Z', '' + (p?.value.z ?? ''))
+      .toggle('Constant Rotation', r?.constant ?? false)
       .textField('Pitch', 'Rotation Pitch', '' + (r?.value.x ?? ''))
       .textField('Yaw', 'Rotation Yaw', '' + (r?.value.y ?? ''));
 
     const types = this.#cinematic.types;
-    let posInterp = types.pos == CinematicType.linearCatmull;
+    let posInterp = types.pos == CinematicType.mixed;
     if (posInterp) {
       form.dropdown(
         'Position Interpolation',
@@ -76,11 +82,11 @@ export class Editor {
         p?.interp ?? 0
       );
     }
-    let rotInterp = types.rot == CinematicType.linearCatmull;
+    let rotInterp = types.rot == CinematicType.mixed;
     if (rotInterp) {
       form.dropdown(
         'Rotation Interpolation',
-        ['Linear', 'Catmull Rom'],
+        ['Linear', 'Catmull Rom', 'Constant'],
         r?.interp ?? 0
       );
     }
@@ -93,17 +99,31 @@ export class Editor {
       return;
     }
     if (!res.formValues) return;
-    let [timeCode, xs, ys, zs, pitchs, yaws, interp0, interp1] =
-      res.formValues as [
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        number,
-        number | undefined
-      ];
+    let [
+      timeCode,
+      command,
+      pc,
+      xs,
+      ys,
+      zs,
+      rc,
+      pitchs,
+      yaws,
+      interp0,
+      interp1,
+    ] = res.formValues as [
+      string,
+      string,
+      boolean,
+      string,
+      string,
+      string,
+      boolean,
+      string,
+      string,
+      number,
+      number | undefined
+    ];
 
     let posInterpType = p?.interp;
     if (posInterp) posInterpType = interp0;
@@ -132,7 +152,9 @@ export class Editor {
     let t = parseFloat(timeCode);
     if (isNaN(t) || typeof t != 'number') t = time;
     line.removeKeyframe(keyframe);
-    line.addKeyframe(new Keyframe(t, rot, rotInterpType, pos, posInterpType));
+    line.addKeyframe(
+      new Keyframe(t, rot, rotInterpType, rc, pos, posInterpType, pc, command)
+    );
     this.#cursorTime = t;
   }
 
@@ -140,16 +162,8 @@ export class Editor {
     const types = this.#cinematic.types;
     const form = new ModalFormData()
       .title('Cinematic Settings')
-      .dropdown(
-        'Position Type',
-        ['Linear and Catmull Rom', 'BSpline', 'Cubic'],
-        types.pos
-      )
-      .dropdown(
-        'Rotation Type',
-        ['Linear and Catmull Rom', 'BSpline', 'Cubic'],
-        types.rot
-      )
+      .dropdown('Position Type', ['Mixed', 'BSpline', 'Cubic'], types.pos)
+      .dropdown('Rotation Type', ['Mixed', 'BSpline', 'Cubic'], types.rot)
       .dropdown('Play Mode', ['Teleport'], this.#cinematic.playMode)
       .slider(
         'Editor Playback Speed (1/10 Sec)',

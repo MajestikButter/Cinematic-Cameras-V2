@@ -12,6 +12,10 @@ const PropertyMap = new Map<string, Properties>();
 export class CinematicPlayer {
   #player: Player;
 
+  get id() {
+    return this.#player.id;
+  }
+
   get dimension() {
     return this.#player.dimension;
   }

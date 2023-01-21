@@ -118,7 +118,7 @@ export class Vector3 {
   ) {
     let input = new Matrix([[1, t, Math.pow(t, 2), Math.pow(t, 3)]]);
     if (scale != 1) input = input.scale(scale);
-    let infl = matrix.dot(input).asArray()[0];
+    let infl = matrix.mul(input).asArray()[0];
 
     let p0 = this.scale(infl[0])
     let p1 = c0.scale(infl[1])

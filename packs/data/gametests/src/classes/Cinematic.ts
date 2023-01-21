@@ -61,8 +61,8 @@ export class Cinematic {
 
   constructor(
     id: string,
-    posType = CinematicType.linearCatmull,
-    rotType = CinematicType.linearCatmull,
+    posType = CinematicType.mixed,
+    rotType = CinematicType.mixed,
     timeline = new Timeline(),
     playMode = PlayMode.teleport
   ) {
@@ -76,7 +76,7 @@ export class Cinematic {
   getInfluence(t: number, matrix: Matrix, scale = 1) {
     let input = new Matrix([[1, t, Math.pow(t, 2), Math.pow(t, 3)]]);
     if (scale != 1) input = input.scale(scale);
-    return matrix.dot(input).asArray()[0];
+    return matrix.mul(input).asArray()[0];
   }
 
   getPoint(
@@ -128,8 +128,21 @@ export class Cinematic {
 
     if (!prevPosK) {
       if (currPosK) {
-        prevPosK = new Keyframe(0, undefined, undefined, currPosK.pos?.value);
-      } else prevPosK = new Keyframe(0, undefined, undefined, Vector3.zero);
+        prevPosK = new Keyframe(
+          0,
+          undefined,
+          undefined,
+          undefined,
+          currPosK.pos?.value
+        );
+      } else
+        prevPosK = new Keyframe(
+          0,
+          undefined,
+          undefined,
+          undefined,
+          Vector3.zero
+        );
     }
     if (!prevRotK) {
       if (currRotK) {
@@ -138,12 +151,19 @@ export class Cinematic {
     }
 
     if (!currPosK)
-      currPosK = new Keyframe(0, undefined, undefined, prevPosK.pos?.value);
+      currPosK = new Keyframe(
+        0,
+        undefined,
+        undefined,
+        undefined,
+        prevPosK.pos?.value
+      );
     if (!currRotK) currRotK = new Keyframe(0, prevRotK.rot?.value);
 
     if (!nextPosK)
       nextPosK = new Keyframe(
         length,
+        undefined,
         undefined,
         undefined,
         currPosK.pos?.value
@@ -152,6 +172,7 @@ export class Cinematic {
     if (!nextPosK2)
       nextPosK2 = new Keyframe(
         length,
+        undefined,
         undefined,
         undefined,
         nextPosK.pos?.value
@@ -195,118 +216,77 @@ export class Cinematic {
     let rotX = 0;
     let rotY = Vector3.zero;
 
-    switch (this.#posType) {
-      case CinematicType.bspline: {
-        pos = this.getPoint(
-          prevPos.value,
-          currPos.value,
-          nextPos.value,
-          nextPos2.value,
-          pt,
-          BsplineMatrix,
-          1 / 6
-        );
-        break;
-      }
-      case CinematicType.cubic: {
-        pos = this.getPoint(
-          currPos.value,
-          prevPos.value,
-          nextPos2.value,
-          nextPos.value,
-          pt,
-          CubicMatrix
-        );
-        break;
-      }
-
-      case CinematicType.linearCatmull: {
-        let pMatrix;
-        let pScale = 1;
-        switch (currPosK.pos?.interp) {
-          case Interpolation.catmull: {
-            pMatrix = CatmullRomMatrix;
-            pScale = 1 / 2;
-            break;
-          }
-        }
-        if (pMatrix) {
+    if (currPos.constant) {
+      pos = currPos.value;
+    } else {
+      switch (this.#posType) {
+        case CinematicType.bspline: {
           pos = this.getPoint(
             prevPos.value,
             currPos.value,
             nextPos.value,
             nextPos2.value,
             pt,
-            pMatrix,
-            pScale
+            BsplineMatrix,
+            1 / 6
           );
-        } else {
-          pos = currPos.value.lerp(nextPos.value, pt);
+          break;
         }
-        break;
+        case CinematicType.cubic: {
+          pos = this.getPoint(
+            currPos.value,
+            prevPos.value,
+            nextPos2.value,
+            nextPos.value,
+            pt,
+            CubicMatrix
+          );
+          break;
+        }
+
+        case CinematicType.mixed: {
+          let pMatrix;
+          let pScale = 1;
+          const pinterp = currPos.interp;
+          switch (pinterp) {
+            case Interpolation.catmull: {
+              pMatrix = CatmullRomMatrix;
+              pScale = 1 / 2;
+              break;
+            }
+          }
+          if (pMatrix) {
+            pos = this.getPoint(
+              prevPos.value,
+              currPos.value,
+              nextPos.value,
+              nextPos2.value,
+              pt,
+              pMatrix,
+              pScale
+            );
+          } else {
+            pos = currPos.value.lerp(nextPos.value, pt);
+          }
+          break;
+        }
       }
     }
-    switch (this.#rotType) {
-      case CinematicType.bspline: {
-        rotX = this.getValue(
-          prevRotX,
-          currRotX,
-          nextRotX,
-          nextRot2X,
-          rt,
-          BsplineMatrix,
-          1 / 6
-        );
-        rotY = this.getPoint(
-          prevRotY,
-          currRotY,
-          nextRotY,
-          nextRot2Y,
-          rt,
-          BsplineMatrix,
-          1 / 6
-        );
-        break;
-      }
-      case CinematicType.cubic: {
-        rotX = this.getValue(
-          prevRotX,
-          currRotX,
-          nextRotX,
-          nextRot2X,
-          rt,
-          CubicMatrix
-        );
-        rotY = this.getPoint(
-          prevRotY,
-          currRotY,
-          nextRotY,
-          nextRot2Y,
-          rt,
-          CubicMatrix
-        );
-        break;
-      }
 
-      case CinematicType.linearCatmull: {
-        let rMatrix;
-        let rScale = 1;
-        switch (currRotK.rot?.interp) {
-          case Interpolation.catmull: {
-            rMatrix = CatmullRomMatrix;
-            rScale = 1 / 2;
-            break;
-          }
-        }
-        if (rMatrix) {
+    if (currRot.constant) {
+      rotX = currRot.value.x;
+      rotY = currRotY;
+    } else {
+      switch (this.#rotType) {
+        case CinematicType.bspline: {
           rotX = this.getValue(
             prevRotX,
             currRotX,
             nextRotX,
             nextRot2X,
             rt,
-            rMatrix,
-            rScale
+            BsplineMatrix,
+            1 / 6
           );
           rotY = this.getPoint(
             prevRotY,
@@ -314,18 +294,81 @@ export class Cinematic {
             nextRotY,
             nextRot2Y,
             rt,
-            rMatrix,
-            rScale
+            BsplineMatrix,
+            1 / 6
           );
-        } else {
-          rotX = currRot.value.lerp(nextRot.value, rt).x;
-          rotY = currRotY.lerp(nextRotY, rt);
+          break;
         }
-        break;
+        case CinematicType.cubic: {
+          rotX = this.getValue(
+            prevRotX,
+            currRotX,
+            nextRotX,
+            nextRot2X,
+            rt,
+            CubicMatrix
+          );
+          rotY = this.getPoint(
+            prevRotY,
+            currRotY,
+            nextRotY,
+            nextRot2Y,
+            rt,
+            CubicMatrix
+          );
+          break;
+        }
+
+        case CinematicType.mixed: {
+          let rMatrix;
+          let rScale = 1;
+          const rinterp = currRot.interp;
+          switch (rinterp) {
+            case Interpolation.catmull: {
+              rMatrix = CatmullRomMatrix;
+              rScale = 1 / 2;
+              break;
+            }
+          }
+          if (rMatrix) {
+            rotX = this.getValue(
+              prevRotX,
+              currRotX,
+              nextRotX,
+              nextRot2X,
+              rt,
+              rMatrix,
+              rScale
+            );
+            rotY = this.getPoint(
+              prevRotY,
+              currRotY,
+              nextRotY,
+              nextRot2Y,
+              rt,
+              rMatrix,
+              rScale
+            );
+          } else {
+            rotX = currRot.value.lerp(nextRot.value, rt).x;
+            rotY = currRotY.lerp(nextRotY, rt);
+          }
+          break;
+        }
       }
     }
 
-    return { pos, rot: new Vector3(rotX, Math.atan2(rotY.y, rotY.x) * toDeg) };
+    return {
+      pos,
+      rot: new Vector3(rotX, Math.atan2(rotY.y, rotY.x) * toDeg),
+      rotKeyframe: currRotK,
+      posKeyframe: currPosK,
+      cmdKeyframe: this.timeline.getKeyframeBefore(
+        time,
+        true,
+        (k) => k.command !== ''
+      ),
+    };
   }
 
   play(player: CinematicPlayer, start = 0, speed = 1, editor = false) {
@@ -360,11 +403,13 @@ export class Cinematic {
     });
   }
 
+  #lastCmdKs = new Map<string, Keyframe>();
   stop(player: CinematicPlayer) {
     let id = player.getProp('cinematicId');
     if (id != this.id) return;
     player.removeProp('cinematicId');
     player.runCommand('ride @s stop_riding');
+    this.#lastCmdKs.delete(player.id);
   }
 
   tick(player: CinematicPlayer, delta: number) {
@@ -381,6 +426,16 @@ export class Cinematic {
 
     let transform = this.transformFromTime(time);
     if (!transform) return;
+    const pId = player.id;
+    const lastK = this.#lastCmdKs.get(pId);
+    let { cmdKeyframe: cmdK } = transform;
+    if (cmdK && cmdK.time !== lastK?.time) {
+      this.#lastCmdKs.set(pId, cmdK);
+      const cmd = cmdK.command;
+      if (cmd && cmd !== '') {
+        player.runCommand(cmd);
+      }
+    }
     let { pos, rot } = transform;
     let mode = player.getProp('cinematicMode') ?? PlayMode.teleport;
     player.update(pos, rot, mode);
@@ -423,10 +478,10 @@ export class Cinematic {
         }
         let { pos: ppos } =
           this.timeline.getPosKeyframeBefore(time, true) ??
-          new Keyframe(0, undefined, undefined, Vector3.zero);
+          new Keyframe(0, undefined, undefined, undefined, Vector3.zero);
         let { pos: npos } =
           this.timeline.getPosKeyframeAfter(time) ??
-          new Keyframe(length, undefined, undefined, Vector3.zero);
+          new Keyframe(length, undefined, undefined, undefined, Vector3.zero);
 
         if (!ppos || !npos) return;
 

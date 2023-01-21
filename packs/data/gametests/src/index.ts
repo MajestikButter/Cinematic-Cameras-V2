@@ -10,6 +10,7 @@ import { Cinematic } from './classes/Cinematic';
 import stored from './cinematics';
 import { CinematicPlayer } from './classes/Player';
 import { Editor } from './classes/Editor';
+import { Keyframe } from './classes/Keyframe';
 
 const editors: Map<Player, Editor> = new Map();
 
@@ -160,11 +161,20 @@ async function handleCommand(message: string, sender: Player) {
 
       sender.tell(`§eBaking: ${id}§r`);
       let res = '';
-      let stepStart = new Date().getTime()
+      let stepStart = new Date().getTime();
+      let lastK: Keyframe | undefined;
       for (let i = 0; i * speedNum < cin.timeline.length; i++) {
         let time = i * speedNum;
         let transform = cin.transformFromTime(time);
         if (!transform) continue;
+        let { cmdKeyframe: cmdK } = transform;
+        if (cmdK && cmdK.time !== lastK?.time) {
+          lastK = cmdK;
+          const cmd = cmdK.command;
+          if (cmd && cmd !== '') {
+            res += `execute if score @s frame matches ${i} run ${cmd}\n`;
+          }
+        }
         const { pos, rot } = transform;
         res += `execute if score @s frame matches ${i} run tp ${pos.x.toFixed(
           3
@@ -172,7 +182,11 @@ async function handleCommand(message: string, sender: Player) {
           3
         )} ${rot.x.toFixed(3)}\n`;
         if (new Date().getTime() - stepStart > 200) {
-          sender.tell(`§eBake progress: ${(time/cin.timeline.length*100).toFixed(2)}%%§r`);
+          sender.tell(
+            `§eBake progress: ${((time / cin.timeline.length) * 100).toFixed(
+              2
+            )}%%§r`
+          );
           await null;
           stepStart = new Date().getTime();
         }

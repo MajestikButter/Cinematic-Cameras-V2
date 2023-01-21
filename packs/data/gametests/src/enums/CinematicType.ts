@@ -1,5 +1,5 @@
 export enum CinematicType {
-  linearCatmull,
+  mixed,
   bspline,
   cubic,
 }
