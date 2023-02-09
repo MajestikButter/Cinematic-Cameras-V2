@@ -27,7 +27,8 @@ export class CinematicPlayer {
 
   get rot() {
     let p = this.#player;
-    return new Vector3(p.rotation.x, p.rotation.y);
+    const rot = p.getRotation();
+    return new Vector3(rot.x, rot.y);
   }
 
   constructor(player: Player) {

@@ -1,6 +1,6 @@
 import * as server from '@minecraft/server';
 import { FormCancelationReason, ModalFormData } from '@minecraft/server-ui';
-const { Location, MolangVariableMap, system, world } = server;
+const { MolangVariableMap, system, world } = server;
 
 import cinematics from '../cinematics';
 import { CinematicType } from '../enums/CinematicType';
@@ -456,25 +456,21 @@ export class Cinematic {
       let stime = new Date().getTime() + start;
       const molang = new MolangVariableMap();
       let keySchedule: number;
-      keySchedule = system.runSchedule(() => {
+      keySchedule = system.runInterval(() => {
         for (let key of this.timeline.getKeyframes()) {
           let { pos } = key;
           if (pos) {
-            dim.spawnParticle(
-              keyframeParticle,
-              new Location(pos.value.x, pos.value.y, pos.value.z),
-              molang
-            );
+            dim.spawnParticle(keyframeParticle, pos.value, molang);
           }
         }
       }, 20);
       let schedule: number;
-      schedule = system.runSchedule(() => {
+      schedule = system.runInterval(() => {
         let time = ((new Date().getTime() - stime) / 1000) * speed;
         if (time > length) {
           resolve();
-          system.clearRunSchedule(keySchedule);
-          return system.clearRunSchedule(schedule);
+          system.clearRun(keySchedule);
+          return system.clearRun(schedule);
         }
         let { pos: ppos } =
           this.timeline.getPosKeyframeBefore(time, true) ??
@@ -489,23 +485,11 @@ export class Cinematic {
         if (transform) {
           let { pos, rot } = transform;
           if (!isNaN(pos.x) && !isNaN(pos.y) && !isNaN(pos.z)) {
-            dim.spawnParticle(
-              particle,
-              new Location(pos.x, pos.y, pos.z),
-              molang
-            );
+            dim.spawnParticle(particle, pos, molang);
           }
         }
-        dim.spawnParticle(
-          prevParticle,
-          new Location(ppos.value.x, ppos.value.y, ppos.value.z),
-          molang
-        );
-        dim.spawnParticle(
-          nextParticle,
-          new Location(npos.value.x, npos.value.y, npos.value.z),
-          molang
-        );
+        dim.spawnParticle(prevParticle, ppos.value, molang);
+        dim.spawnParticle(nextParticle, npos.value, molang);
       }, 1);
     });
   }

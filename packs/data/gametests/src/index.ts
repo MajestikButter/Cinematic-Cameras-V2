@@ -11,6 +11,7 @@ import stored from './cinematics';
 import { CinematicPlayer } from './classes/Player';
 import { Editor } from './classes/Editor';
 import { Keyframe } from './classes/Keyframe';
+import { Vector3 } from './classes/Vector3';
 
 const editors: Map<Player, Editor> = new Map();
 
@@ -32,14 +33,16 @@ async function handleCommand(message: string, sender: Player) {
     case 'new': {
       let parsed = message.match(/!new\s*(\w+)?(?:\s+(.+))?/);
       if (!parsed)
-        return sender.tell(
+        return sender.sendMessage(
           `§cAn unexpected error occurred while parsing the command§r`
         );
       let id = parsed[1];
       if (!id)
-        return sender.tell(`§cSupply an id in order to create a cinematic§r`);
+        return sender.sendMessage(
+          `§cSupply an id in order to create a cinematic§r`
+        );
       let cin = cinematics[id];
-      if (cin) return sender.tell(`§cFound existing cinematic: ${id}§r`);
+      if (cin) return sender.sendMessage(`§cFound existing cinematic: ${id}§r`);
       let data = parsed[2];
       if (!data) {
         cinematics[id] = new Cinematic(id);
@@ -48,12 +51,12 @@ async function handleCommand(message: string, sender: Player) {
           let d = JSON.parse(data);
           cinematics[id] = Cinematic.fromJSON(id, d);
         } catch {
-          return sender.tell(
+          return sender.sendMessage(
             `§cAn error occured while parsing the supplied data§r`
           );
         }
       }
-      sender.tell(`§aSuccessfully created cinematic: ${id}§r`);
+      sender.sendMessage(`§aSuccessfully created cinematic: ${id}§r`);
       break;
     }
     case 'edit': {
@@ -68,20 +71,21 @@ async function handleCommand(message: string, sender: Player) {
           } catch {}
         }
       }
-      if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
+      if (!cin)
+        return sender.sendMessage(`§cFailed to find cinematic: ${id}§r`);
       editors.set(sender, new Editor(new CinematicPlayer(sender), cin));
-      sender.tell(`§aSuccessfully started editing: ${id}§r`);
+      sender.sendMessage(`§aSuccessfully started editing: ${id}§r`);
       break;
     }
     case 'save': {
       let id = args[1];
       let editor = editors.get(sender);
       if (!editor)
-        return sender.tell(
+        return sender.sendMessage(
           `§cUnable to save, you are currently not editing a cinematic§r`
         );
       cinematics[id] = editor.cinematic;
-      sender.tell(
+      sender.sendMessage(
         `§aSuccessfully saved §e${editor.cinematic.id}§a as §b${id}§r`
       );
       break;
@@ -89,7 +93,8 @@ async function handleCommand(message: string, sender: Player) {
     case 'play': {
       let id = args[1];
       let cin = cinematics[id];
-      if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
+      if (!cin)
+        return sender.sendMessage(`§cFailed to find cinematic: ${id}§r`);
 
       let startStr = args[2];
       let startNum: number | undefined;
@@ -102,7 +107,7 @@ async function handleCommand(message: string, sender: Player) {
         startNum && !isNaN(startNum) ? startNum : 0,
         speedNum && !isNaN(speedNum) ? speedNum : 1
       );
-      sender.tell(
+      sender.sendMessage(
         `§aSuccessfully started: ${id} start: ${startNum} speed: ${speedNum}§r`
       );
       break;
@@ -110,17 +115,20 @@ async function handleCommand(message: string, sender: Player) {
     case 'stop': {
       let plr = new CinematicPlayer(sender);
       let id = plr.getProp('cinematicId');
-      if (!id) return sender.tell(`§cNo cinematic is currently playing§r`);
+      if (!id)
+        return sender.sendMessage(`§cNo cinematic is currently playing§r`);
       let cin = cinematics[id];
-      if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
+      if (!cin)
+        return sender.sendMessage(`§cFailed to find cinematic: ${id}§r`);
       cin.stop(plr);
-      sender.tell(`§aSuccessfully stopped: ${id}§r`);
+      sender.sendMessage(`§aSuccessfully stopped: ${id}§r`);
       break;
     }
     case 'visualize': {
       let id = args[1];
       let cin = cinematics[id];
-      if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
+      if (!cin)
+        return sender.sendMessage(`§cFailed to find cinematic: ${id}§r`);
       let startStr = args[2];
       let startNum: number | undefined;
       if (startStr) startNum = parseFloat(startStr);
@@ -133,7 +141,7 @@ async function handleCommand(message: string, sender: Player) {
         speedNum && !isNaN(speedNum) ? speedNum : 1,
         particle
       );
-      sender.tell(
+      sender.sendMessage(
         `§aSuccessfully visualizing: ${id} start: ${startNum} speed: ${speedNum}§r`
       );
       break;
@@ -141,17 +149,19 @@ async function handleCommand(message: string, sender: Player) {
     case 'export': {
       let id = args[1];
       let cin = cinematics[id];
-      if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
+      if (!cin)
+        return sender.sendMessage(`§cFailed to find cinematic: ${id}§r`);
       let res = JSON.stringify(cin.toJSON());
       let plr = new CinematicPlayer(sender);
       cin.promptCopy(plr, res);
-      sender.tell(`§aSuccessfully exported: ${id}§r`);
+      sender.sendMessage(`§aSuccessfully exported: ${id}§r`);
       break;
     }
     case 'bake': {
       let id = args[1];
       let cin = cinematics[id];
-      if (!cin) return sender.tell(`§cFailed to find cinematic: ${id}§r`);
+      if (!cin)
+        return sender.sendMessage(`§cFailed to find cinematic: ${id}§r`);
       let speedStr = args[2];
       let speedNum: number | undefined;
       if (speedStr) speedNum = parseFloat(speedStr);
@@ -159,7 +169,7 @@ async function handleCommand(message: string, sender: Player) {
       if (!speedNum || isNaN(speedNum)) speedNum = 1;
       speedNum /= 20;
 
-      sender.tell(`§eBaking: ${id}§r`);
+      sender.sendMessage(`§eBaking: ${id}§r`);
       let res = '';
       let stepStart = new Date().getTime();
       let lastK: Keyframe | undefined;
@@ -182,7 +192,7 @@ async function handleCommand(message: string, sender: Player) {
           3
         )} ${rot.x.toFixed(3)}\n`;
         if (new Date().getTime() - stepStart > 200) {
-          sender.tell(
+          sender.sendMessage(
             `§eBake progress: ${((time / cin.timeline.length) * 100).toFixed(
               2
             )}%%§r`
@@ -193,11 +203,11 @@ async function handleCommand(message: string, sender: Player) {
       }
       let plr = new CinematicPlayer(sender);
       cin.promptCopy(plr, res);
-      sender.tell(`§aSuccessfully baked: ${id}§r`);
+      sender.sendMessage(`§aSuccessfully baked: ${id}§r`);
       break;
     }
     default: {
-      sender.tell(`§cNo command found: ${cmd}§r`);
+      sender.sendMessage(`§cNo command found: ${cmd}§r`);
     }
   }
 }
