@@ -78,7 +78,7 @@ export class Editor {
     if (posInterp) {
       form.dropdown(
         'Position Interpolation',
-        ['Linear', 'Catmull Rom', 'Constant'],
+        ['Linear', 'Catmull Rom'],
         p?.interp ?? 0
       );
     }
@@ -86,7 +86,7 @@ export class Editor {
     if (rotInterp) {
       form.dropdown(
         'Rotation Interpolation',
-        ['Linear', 'Catmull Rom', 'Constant'],
+        ['Linear', 'Catmull Rom'],
         r?.interp ?? 0
       );
     }
