@@ -36,6 +36,7 @@ jobs:
         with:
           type: "zip"
           directory: ./build
+          exclusions: "*.mcaddon"
           filename: ${{ env.RELEASE_NAME }}.zip
 
       - uses: ncipollo/release-action@v1
