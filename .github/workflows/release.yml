@@ -28,19 +28,19 @@ jobs:
         uses: thedoctor0/zip-release@0.7.1
         with:
           type: "zip"
-          path: "./build/BP,./build/RP"
+          directory: ./build
           filename: ${{ env.RELEASE_NAME }}.mcaddon
 
       - name: Zip Archive
         uses: thedoctor0/zip-release@0.7.1
         with:
           type: "zip"
-          path: "./build/BP,./build/RP"
+          directory: ./build
           filename: ${{ env.RELEASE_NAME }}.zip
 
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: ${{ env.RELEASE_NAME }}.mcaddon,${{ env.RELEASE_NAME }}.zip
+          artifacts: ./build/${{ env.RELEASE_NAME }}.mcaddon,./build/${{ env.RELEASE_NAME }}.zip
           generateReleaseNotes: true
           makeLatest: true
           body: ${{ github.event.head_commit.message }}
