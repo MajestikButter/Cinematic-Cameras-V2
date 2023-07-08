@@ -43,4 +43,3 @@ jobs:
           generateReleaseNotes: true
           makeLatest: true
           body: ${{ github.event.head_commit.message }}
-          tag: ${{ github.ref_name }}
