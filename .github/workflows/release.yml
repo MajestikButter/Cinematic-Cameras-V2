@@ -13,10 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - name: Set env
-        run: |
-          echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-          echo "RELEASE_NAME=Cinematic-Cameras-V2_$RELEASE_VERSION" >> $GITHUB_ENV
+      - name: Set version env
+        run: echo "RELEASE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          
+      - name: Set name env
+        run: echo "RELEASE_NAME=Cinematic-Cameras-V2_$RELEASE_VERSION" >> $GITHUB_ENV
 
       - name: "Build Packs"
         uses: Bedrock-OSS/regolith-action@v1.0.3
