@@ -93,7 +93,7 @@ export class Editor {
 
     let res = await this.#player.show(form);
     if (res.canceled) {
-      if (res.cancelationReason == FormCancelationReason.userBusy) {
+      if (res.cancelationReason == FormCancelationReason.UserBusy) {
         await this.editKeyframe();
       }
       return;
@@ -164,7 +164,7 @@ export class Editor {
       .title('Cinematic Settings')
       .dropdown('Position Type', ['Mixed', 'BSpline', 'Cubic'], types.pos)
       .dropdown('Rotation Type', ['Mixed', 'BSpline', 'Cubic'], types.rot)
-      .dropdown('Play Mode', ['Teleport'], this.#cinematic.playMode)
+      .dropdown('Play Mode', ['Teleport', 'Camera'], this.#cinematic.playMode)
       .slider(
         'Editor Playback Speed (1/10 Sec)',
         1,
@@ -189,7 +189,7 @@ export class Editor {
       .toggle('Editor Particles Enabled', this.#particles);
     let res = await this.#player.show(form);
     if (res.canceled) {
-      if (res.cancelationReason == FormCancelationReason.userBusy) {
+      if (res.cancelationReason == FormCancelationReason.UserBusy) {
         await this.editSettings();
       }
       return;
@@ -262,7 +262,6 @@ export class Editor {
 
   stop() {
     this.#cinematic.stop(this.#player);
-    this.moveCursor(0);
     this.setItem(4, 'mbcc:play');
   }
 

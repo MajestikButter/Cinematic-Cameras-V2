@@ -10,11 +10,15 @@
     "filterDefinitions": {
       "gametests": {
         "url": "github.com/Bedrock-OSS/regolith-filters",
-        "version": "1.2.0"
+        "version": "latest"
+      },
+      "set_version": {
+        "script": "./filters/set_version/index.js",
+        "runWith": "nodejs"
       }
     },
     "profiles": {
-      "default": {
+      "build": {
         "export": {
           "readOnly": false,
           "target": "local"
@@ -25,12 +29,36 @@
             "settings": {
               "buildOptions": {
                 "entryPoints": ["data/gametests/src/index.ts"],
-                "minify": false,
-                "external": ["@minecraft/server", "@minecraft/server-ui", "./cinematics"]
+                "external": ["./cinematics"],
+                "minify": true,
+                "bundle": true
               },
               "moduleUUID": "861094c5-f426-447c-ad1d-2bea2d9de201",
-              "modules": [],
+              "modules": ["@minecraft/server@1.3.0-beta", "@minecraft/server-ui@1.1.0-beta"],
               "outfile": "BP/scripts/index.js"
+            }
+          },
+          { "filter": "set_version" }
+        ]
+      },
+      "default": {
+        "export": {
+          "readOnly": false,
+          "target": "local"
+        },
+        "filters": [
+          {
+            "filter": "gametests",
+            "settings": {
+              "buildOptions": {
+                "entryPoints": ["data/gametests/src/**/!(*.d).ts"],
+                "minify": false,
+                "bundle": false
+              },
+              "moduleUUID": "861094c5-f426-447c-ad1d-2bea2d9de201",
+              "modules": ["@minecraft/server@1.3.0-beta", "@minecraft/server-ui@1.1.0-beta"],
+              "outfile": "BP/scripts/index.js",
+              "outdir": "BP/scripts"
             }
           }
         ]

@@ -11,7 +11,6 @@ import stored from './cinematics';
 import { CinematicPlayer } from './classes/Player';
 import { Editor } from './classes/Editor';
 import { Keyframe } from './classes/Keyframe';
-import { Vector3 } from './classes/Vector3';
 
 const editors: Map<Player, Editor> = new Map();
 
@@ -177,6 +176,7 @@ async function handleCommand(message: string, sender: Player) {
         let time = i * speedNum;
         let transform = cin.transformFromTime(time);
         if (!transform) continue;
+
         let { cmdKeyframe: cmdK } = transform;
         if (cmdK && cmdK.time !== lastK?.time) {
           lastK = cmdK;
@@ -185,12 +185,9 @@ async function handleCommand(message: string, sender: Player) {
             res += `execute if score @s frame matches ${i} run ${cmd}\n`;
           }
         }
-        const { pos, rot } = transform;
-        res += `execute if score @s frame matches ${i} run tp ${pos.x.toFixed(
-          3
-        )} ${pos.y.toFixed(3)} ${pos.z.toFixed(3)} ${rot.y.toFixed(
-          3
-        )} ${rot.x.toFixed(3)}\n`;
+
+        const cmd = cin.tranformToCommand(transform);
+        res += `execute if score @s frame matches ${i} run ${cmd}\n`;
         if (new Date().getTime() - stepStart > 200) {
           sender.sendMessage(
             `§eBake progress: ${((time / cin.timeline.length) * 100).toFixed(
@@ -212,14 +209,14 @@ async function handleCommand(message: string, sender: Player) {
   }
 }
 
-world.events.beforeChat.subscribe((evd) => {
+world.beforeEvents.chatSend.subscribe((evd) => {
   let { sender, message } = evd;
   if (!message.startsWith('!')) return;
   evd.cancel = true;
-  handleCommand(message, sender);
+  system.runTimeout(() => handleCommand(message, sender), 0);
 });
 
-world.events.worldInitialize.subscribe(({ propertyRegistry: reg }) => {
+world.afterEvents.worldInitialize.subscribe(({ propertyRegistry: reg }) => {
   const def = new DynamicPropertiesDefinition();
   def.defineString('autosave', 9000);
   reg.registerWorldDynamicProperties(def);
@@ -289,9 +286,9 @@ async function itemUse(source: Player, itemId: string) {
   }
 }
 
-world.events.itemUse.subscribe(async ({ source, item }) => {
+world.afterEvents.itemUse.subscribe(async ({ source, itemStack }) => {
   if (!(source instanceof Player)) return;
-  itemUse(source, item.typeId);
+  itemUse(source, itemStack.typeId);
 });
 
 let lastSave = new Date().getTime();

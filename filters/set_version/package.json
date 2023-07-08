@@ -1,0 +1,11 @@
+{
+  "name": "set_version",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.4.1"
+  }
+}

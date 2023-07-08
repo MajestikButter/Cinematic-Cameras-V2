@@ -19,8 +19,16 @@ export interface JSONCinematic {
   timeline: JSONTimeline;
 }
 
+interface Transform {
+  pos: Vector3;
+  rot: Vector3;
+  rotKeyframe: Keyframe;
+  posKeyframe: Keyframe;
+  cmdKeyframe?: Keyframe;
+}
+
 export class Cinematic {
-  static fromJSON(id: string, json: typeof cinematics[string]) {
+  static fromJSON(id: string, json: (typeof cinematics)[string]) {
     return new Cinematic(
       id,
       json.posType,
@@ -111,7 +119,7 @@ export class Cinematic {
     return v0 * infl[0] + v1 * infl[1] + v2 * infl[2] + v3 * infl[3];
   }
 
-  transformFromTime(time: number) {
+  transformFromTime(time: number): Transform | undefined {
     const line = this.timeline;
     const length = line.length;
 
@@ -150,7 +158,7 @@ export class Cinematic {
       } else prevRotK = new Keyframe(0, Vector3.zero);
     }
 
-    if (!currPosK)
+    if (!currPosK) {
       currPosK = new Keyframe(
         0,
         undefined,
@@ -158,9 +166,10 @@ export class Cinematic {
         undefined,
         prevPosK.pos?.value
       );
+    }
     if (!currRotK) currRotK = new Keyframe(0, prevRotK.rot?.value);
 
-    if (!nextPosK)
+    if (!nextPosK) {
       nextPosK = new Keyframe(
         length,
         undefined,
@@ -168,8 +177,9 @@ export class Cinematic {
         undefined,
         currPosK.pos?.value
       );
+    }
     if (!nextRotK) nextRotK = new Keyframe(length, currRotK.rot?.value);
-    if (!nextPosK2)
+    if (!nextPosK2) {
       nextPosK2 = new Keyframe(
         length,
         undefined,
@@ -177,6 +187,7 @@ export class Cinematic {
         undefined,
         nextPosK.pos?.value
       );
+    }
     if (!nextRotK2) nextRotK2 = new Keyframe(length, nextRotK.rot?.value);
 
     let prevPos = prevPosK.pos!;
@@ -371,6 +382,18 @@ export class Cinematic {
     };
   }
 
+  tranformToCommand(transform: Transform) {
+    const [x, y, z] = transform.pos.toArray().map((v) => v.toFixed(3));
+    const [rx, ry] = transform.rot.toArray().map((v) => v.toFixed(3));
+
+    switch (this.playMode) {
+      case PlayMode.teleport:
+        return `tp ${x} ${y} ${z} ${ry} ${rx}`;
+      case PlayMode.camera:
+        return `camera @s set minecraft:free ease 0.07 linear pos ${x} ${y} ${z} rot ${rx} ${ry}`;
+    }
+  }
+
   play(player: CinematicPlayer, start = 0, speed = 1, editor = false) {
     player.setProp('cinematicId', this.id);
     player.setProp('cinematicTime', start);
@@ -379,8 +402,15 @@ export class Cinematic {
     let mode = this.#playMode;
     player.setProp('cinematicMode', mode);
 
+    player.runCommand('inputpermission set @s camera disabled');
+    player.runCommand('inputpermission set @s movement disabled');
+
     switch (mode) {
       case PlayMode.teleport: {
+        if (!editor) player.runCommand('gamemode spectator');
+        break;
+      }
+      case PlayMode.camera: {
         if (!editor) player.runCommand('gamemode spectator');
         break;
       }
@@ -388,7 +418,7 @@ export class Cinematic {
     let transform = this.transformFromTime(start);
     if (transform) {
       const { pos, rot } = transform;
-      player.update(pos, rot, PlayMode.teleport);
+      player.update(pos, rot, mode);
     }
 
     if (editor) player.runCommand('gamemode creative');
@@ -407,8 +437,15 @@ export class Cinematic {
   stop(player: CinematicPlayer) {
     let id = player.getProp('cinematicId');
     if (id != this.id) return;
+
+    player.runCommand('inputpermission set @s camera enabled');
+    player.runCommand('inputpermission set @s movement enabled');
+
     player.removeProp('cinematicId');
     player.runCommand('ride @s stop_riding');
+
+    if (this.playMode == PlayMode.camera) player.runCommand('camera @s clear');
+
     this.#lastCmdKs.delete(player.id);
   }
 
@@ -460,7 +497,9 @@ export class Cinematic {
         for (let key of this.timeline.getKeyframes()) {
           let { pos } = key;
           if (pos) {
-            dim.spawnParticle(keyframeParticle, pos.value, molang);
+            try {
+              dim.spawnParticle(keyframeParticle, pos.value, molang);
+            } catch {}
           }
         }
       }, 20);
@@ -483,13 +522,19 @@ export class Cinematic {
 
         let transform = this.transformFromTime(time);
         if (transform) {
-          let { pos, rot } = transform;
+          let { pos } = transform;
           if (!isNaN(pos.x) && !isNaN(pos.y) && !isNaN(pos.z)) {
-            dim.spawnParticle(particle, pos, molang);
+            try {
+              dim.spawnParticle(particle, pos, molang);
+            } catch {}
           }
         }
-        dim.spawnParticle(prevParticle, ppos.value, molang);
-        dim.spawnParticle(nextParticle, npos.value, molang);
+        try {
+          dim.spawnParticle(prevParticle, ppos.value, molang);
+        } catch {}
+        try {
+          dim.spawnParticle(nextParticle, npos.value, molang);
+        } catch {}
       }, 1);
     });
   }
@@ -516,8 +561,7 @@ export class Cinematic {
         copyText
       );
     let res = await player.show(form);
-    if (res.canceled && res.cancelationReason == FormCancelationReason.userBusy)
-      await this.promptCopy(player, copyText);
+    if (res.canceled) await this.promptCopy(player, copyText);
   }
 
   toJSON() {

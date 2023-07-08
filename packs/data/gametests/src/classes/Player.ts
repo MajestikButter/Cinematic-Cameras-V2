@@ -38,8 +38,26 @@ export class CinematicPlayer {
   update(pos: Vector3, rot: Vector3, mode: PlayMode) {
     const player = this.#player;
     const dim = player.dimension;
-    if (mode == PlayMode.teleport) {
-      player.teleport(pos.toObject(), dim, rot.x, rot.y);
+    switch (mode) {
+      case PlayMode.teleport: {
+        player.teleport(pos, {
+          dimension: dim,
+          rotation: rot,
+        });
+        break;
+      }
+      case PlayMode.camera: {
+        let { x, y, z } = pos;
+        let { x: rx, y: ry } = rot;
+        x = Math.floor(x * 1000) / 1000;
+        y = Math.floor(y * 1000) / 1000;
+        z = Math.floor(z * 1000) / 1000;
+        rx = Math.floor(rx * 1000) / 1000;
+        ry = Math.floor(ry * 1000) / 1000;
+        player.runCommand(
+          `camera @s set minecraft:free ease 0.07 linear pos ${x} ${y} ${z} rot ${rx} ${ry}`
+        );
+      }
     }
   }
 
@@ -83,7 +101,7 @@ export class CinematicPlayer {
   setActionbar(text: string) {
     this.#player.onScreenDisplay.setActionBar(text);
   }
-  show<f extends { show: (arg0: Player) => any }>(
+  show<f extends { show: (plr: Player) => any }>(
     form: f
   ): ReturnType<f['show']> {
     return form.show(this.#player);
