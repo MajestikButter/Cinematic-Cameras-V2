@@ -29,14 +29,14 @@ jobs:
         with:
           type: "zip"
           directory: "./build"
-          filename: $RELEASE_NAME.mcaddon
+          filename: ${{ env.RELEASE_NAME }}.mcaddon
 
       - name: Zip Archive
         uses: thedoctor0/zip-release@0.7.1
         with:
           type: "zip"
           directory: "./build"
-          filename: $RELEASE_NAME.zip
+          filename: ${{ env.RELEASE_NAME }}.zip
 
       - uses: ncipollo/release-action@v1
         with:
