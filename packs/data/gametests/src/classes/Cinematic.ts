@@ -382,7 +382,7 @@ export class Cinematic {
     };
   }
 
-  tranformToCommand(transform: Transform) {
+  transformToCommand(transform: Transform) {
     const [x, y, z] = transform.pos.toArray().map((v) => v.toFixed(3));
     const [rx, ry] = transform.rot.toArray().map((v) => v.toFixed(3));
 

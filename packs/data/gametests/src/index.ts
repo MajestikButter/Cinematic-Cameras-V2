@@ -186,7 +186,7 @@ async function handleCommand(message: string, sender: Player) {
           }
         }
 
-        const cmd = cin.tranformToCommand(transform);
+        const cmd = cin.transformToCommand(transform);
         res += `execute if score @s frame matches ${i} run ${cmd}\n`;
         if (new Date().getTime() - stepStart > 200) {
           sender.sendMessage(
