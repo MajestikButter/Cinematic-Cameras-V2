@@ -40,19 +40,19 @@ export class Matrix {
   mul(matrix: Matrix) {
     const arr = matrix.asArray();
     let res: number[][] = [];
-		for (let i0 = 0; i0 < arr.length; i0++) {
-    	res[i0] = []
-    	for (let i = 0; i < this.columns; i++) {
-      	let row = arr[i0]
+    for (let i0 = 0; i0 < arr.length; i0++) {
+      res[i0] = [];
+      for (let i = 0; i < this.columns; i++) {
+        let row = arr[i0];
         let r = 0;
         for (let i1 = 0; i1 < row.length; i1++) {
-					let a = row[i1]
-					let b = this.#values[i1][i]
+          let a = row[i1];
+          let b = this.#values[i1][i];
           r += a * b;
-				}
+        }
         res[i0][i] = r;
-			}
-		}
+      }
+    }
     return new Matrix(res);
   }
 

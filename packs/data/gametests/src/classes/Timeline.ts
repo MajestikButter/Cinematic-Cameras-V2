@@ -1,4 +1,4 @@
-import { JSONKeyframe, Keyframe } from './Keyframe';
+import { JSONKeyframe, Keyframe } from "./Keyframe";
 
 export interface JSONTimeline {
   [timeCode: string]: JSONKeyframe;
@@ -40,7 +40,7 @@ export class Timeline {
   getKeyframeAfter(
     time: number,
     include = false,
-    filter: (keyframe: Keyframe) => boolean = () => true
+    filter: (keyframe: Keyframe) => boolean = () => true,
   ) {
     let closest: Keyframe | undefined;
     for (let [currTime, keyframe] of this.#keyframes) {
@@ -64,7 +64,7 @@ export class Timeline {
   getKeyframeBefore(
     time: number,
     include = false,
-    filter: (keyframe: Keyframe) => boolean = () => true
+    filter: (keyframe: Keyframe) => boolean = () => true,
   ) {
     let closest: Keyframe | undefined;
     for (let [currTime, keyframe] of this.#keyframes) {

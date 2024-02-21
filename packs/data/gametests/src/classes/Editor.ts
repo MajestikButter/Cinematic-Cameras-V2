@@ -1,12 +1,12 @@
-import { system } from '@minecraft/server';
-import { ModalFormData, FormCancelationReason } from '@minecraft/server-ui';
-import { CinematicType } from '../enums/CinematicType';
-import { Interpolation } from '../enums/Interpolation';
-import { PlayMode } from '../enums/PlayMode';
-import { Cinematic } from './Cinematic';
-import { Keyframe } from './Keyframe';
-import { CinematicPlayer } from './Player';
-import { Vector3 } from './Vector3';
+import { ItemLockMode, ItemStack, system } from "@minecraft/server";
+import { FormCancelationReason, ModalFormData } from "@minecraft/server-ui";
+import { CinematicType } from "../enums/CinematicType";
+import { Interpolation } from "../enums/Interpolation";
+import { PlayMode } from "../enums/PlayMode";
+import { Cinematic } from "./Cinematic";
+import { Keyframe } from "./Keyframe";
+import { CinematicPlayer } from "./Player";
+import { Vector3 } from "./Vector3";
 
 export class Editor {
   #player: CinematicPlayer;
@@ -30,7 +30,7 @@ export class Editor {
     this.#player = player;
     this.#cinematic = cinematic;
     this.startHotbar();
-    player.runCommand('gamemode creative');
+    player.runCommand("gamemode creative");
   }
 
   getKeyframe() {
@@ -48,7 +48,7 @@ export class Editor {
       p.pos.execFunc((_, v) => Math.floor(v * 1000) / 1000),
       Interpolation.catmull,
       false,
-      ''
+      "",
     );
     this.#cinematic.timeline.addKeyframe(keyframe);
     return keyframe;
@@ -62,32 +62,32 @@ export class Editor {
     let r = keyframe.rot;
 
     const form = new ModalFormData()
-      .title('Edit Keyframe')
-      .textField('Keyframe Position', '', '' + keyframe.time)
-      .textField('Command', 'Command to run', keyframe.command)
-      .toggle('Constant Position', p?.constant ?? false)
-      .textField('X', 'Position X', '' + (p?.value.x ?? ''))
-      .textField('Y', 'Position Y', '' + (p?.value.y ?? ''))
-      .textField('Z', 'Position Z', '' + (p?.value.z ?? ''))
-      .toggle('Constant Rotation', r?.constant ?? false)
-      .textField('Pitch', 'Rotation Pitch', '' + (r?.value.x ?? ''))
-      .textField('Yaw', 'Rotation Yaw', '' + (r?.value.y ?? ''));
+      .title("Edit Keyframe")
+      .textField("Keyframe Position", "", "" + keyframe.time)
+      .textField("Command", "Command to run", keyframe.command)
+      .toggle("Constant Position", p?.constant ?? false)
+      .textField("X", "Position X", "" + (p?.value.x ?? ""))
+      .textField("Y", "Position Y", "" + (p?.value.y ?? ""))
+      .textField("Z", "Position Z", "" + (p?.value.z ?? ""))
+      .toggle("Constant Rotation", r?.constant ?? false)
+      .textField("Pitch", "Rotation Pitch", "" + (r?.value.x ?? ""))
+      .textField("Yaw", "Rotation Yaw", "" + (r?.value.y ?? ""));
 
     const types = this.#cinematic.types;
     let posInterp = types.pos == CinematicType.mixed;
     if (posInterp) {
       form.dropdown(
-        'Position Interpolation',
-        ['Linear', 'Catmull Rom'],
-        p?.interp ?? 0
+        "Position Interpolation",
+        ["Linear", "Catmull Rom"],
+        p?.interp ?? 0,
       );
     }
     let rotInterp = types.rot == CinematicType.mixed;
     if (rotInterp) {
       form.dropdown(
-        'Rotation Interpolation',
-        ['Linear', 'Catmull Rom'],
-        r?.interp ?? 0
+        "Rotation Interpolation",
+        ["Linear", "Catmull Rom"],
+        r?.interp ?? 0,
       );
     }
 
@@ -122,7 +122,7 @@ export class Editor {
       string,
       string,
       number,
-      number | undefined
+      number | undefined,
     ];
 
     let posInterpType = p?.interp;
@@ -150,10 +150,10 @@ export class Editor {
 
     let line = this.#cinematic.timeline;
     let t = parseFloat(timeCode);
-    if (isNaN(t) || typeof t != 'number') t = time;
+    if (isNaN(t) || typeof t != "number") t = time;
     line.removeKeyframe(keyframe);
     line.addKeyframe(
-      new Keyframe(t, rot, rotInterpType, rc, pos, posInterpType, pc, command)
+      new Keyframe(t, rot, rotInterpType, rc, pos, posInterpType, pc, command),
     );
     this.#cursorTime = t;
   }
@@ -161,32 +161,32 @@ export class Editor {
   async editSettings() {
     const types = this.#cinematic.types;
     const form = new ModalFormData()
-      .title('Cinematic Settings')
-      .dropdown('Position Type', ['Mixed', 'BSpline', 'Cubic'], types.pos)
-      .dropdown('Rotation Type', ['Mixed', 'BSpline', 'Cubic'], types.rot)
-      .dropdown('Play Mode', ['Teleport', 'Camera'], this.#cinematic.playMode)
+      .title("Cinematic Settings")
+      .dropdown("Position Type", ["Mixed", "BSpline", "Cubic"], types.pos)
+      .dropdown("Rotation Type", ["Mixed", "BSpline", "Cubic"], types.rot)
+      .dropdown("Play Mode", ["Teleport", "Camera"], this.#cinematic.playMode)
       .slider(
-        'Editor Playback Speed (1/10 Sec)',
+        "Editor Playback Speed (1/10 Sec)",
         1,
         100,
         1,
-        this.#playbackSpeed * 10
+        this.#playbackSpeed * 10,
       )
       .slider(
-        'Editor Particle Speed (1/10 Sec)',
+        "Editor Particle Speed (1/10 Sec)",
         1,
         100,
         1,
-        this.#displaySpeed * 10
+        this.#displaySpeed * 10,
       )
       .slider(
-        'Editor Move Increment (1/10 Sec)',
+        "Editor Move Increment (1/10 Sec)",
         1,
         20,
         1,
-        this.#moveIncrement * 10
+        this.#moveIncrement * 10,
       )
-      .toggle('Editor Particles Enabled', this.#particles);
+      .toggle("Editor Particles Enabled", this.#particles);
     let res = await this.#player.show(form);
     if (res.canceled) {
       if (res.cancelationReason == FormCancelationReason.UserBusy) {
@@ -203,7 +203,7 @@ export class Editor {
         number,
         number,
         number,
-        boolean
+        boolean,
       ];
 
     this.#cinematic = this.#cinematic
@@ -226,7 +226,7 @@ export class Editor {
     let length = line.length;
     let newPos = Math.min(
       length + 10,
-      Math.max(0, this.#cursorTime + delta * this.#moveIncrement)
+      Math.max(0, this.#cursorTime + delta * this.#moveIncrement),
     );
 
     let key: Keyframe | undefined;
@@ -234,13 +234,13 @@ export class Editor {
       key = line.getKeyframeAfter(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < 0.05
+        (k) => Math.abs(k.time - newPos) < 0.05,
       );
     } else if (delta < 0) {
       key = line.getKeyframeBefore(
         newPos,
         false,
-        (k) => Math.abs(k.time - newPos) < 0.05
+        (k) => Math.abs(k.time - newPos) < 0.05,
       );
     }
     if (key) newPos = key.time;
@@ -257,39 +257,40 @@ export class Editor {
       .then(() => {
         this.stop();
       });
-    this.setItem(4, 'mbcc:stop');
+    this.setItem(4, "mbcc:stop");
   }
 
   stop() {
     this.#cinematic.stop(this.#player);
-    this.setItem(4, 'mbcc:play');
+    this.setItem(4, "mbcc:play");
   }
 
   setItem(slot: number, id: string) {
-    this.#player.runCommand(
-      `replaceitem entity @s slot.hotbar ${slot} ${id} 1 0 {"item_lock":{"mode":"lock_in_slot"},"keep_on_death":{}}`
-    );
+    const item = new ItemStack(id);
+    item.lockMode = ItemLockMode.slot;
+    item.keepOnDeath = true;
+    this.#player.setItem(slot, item);
   }
 
   startHotbar() {
     const hotbar = [
-      'close',
-      'delete_keyframe',
+      "close",
+      "delete_keyframe",
       undefined,
-      'move_left',
-      'play',
-      'move_right',
-      'new_keyframe',
-      'edit_keyframe',
-      'settings',
+      "move_left",
+      "play",
+      "move_right",
+      "new_keyframe",
+      "edit_keyframe",
+      "settings",
     ];
     for (let i = 0; i < hotbar.length; i++) {
-      let id = hotbar[i] ? `mbcc:${hotbar[i]}` : 'air';
+      let id = hotbar[i] ? `mbcc:${hotbar[i]}` : "air";
       this.setItem(i, id);
     }
   }
   stopHotbar() {
-    for (let i = 0; i < 9; i++) this.setItem(i, 'air');
+    for (let i = 0; i < 9; i++) this.setItem(i, "air");
   }
 
   tick() {
@@ -298,20 +299,22 @@ export class Editor {
     let currKeyframe = cin.timeline.getKeyframeAt(this.cursorTime);
 
     let transform = this.#cinematic.transformFromTime(this.#cursorTime);
-    let suff = '';
+    let suff = "";
     if (transform) {
       let { pos, rot } = transform;
-      suff = `\nPosition: ${pos
-        .execFunc((_, v) => Math.floor(v * 1000) / 1000)
-        .toArray()
-        .join(' ')}\nRotation: ${Math.floor(rot.x * 1000) / 1000} ${
+      suff = `\nPosition: ${
+        pos
+          .execFunc((_, v) => Math.floor(v * 1000) / 1000)
+          .toArray()
+          .join(" ")
+      }\nRotation: ${Math.floor(rot.x * 1000) / 1000} ${
         Math.floor(rot.y * 1000) / 1000
       }`;
     }
     this.#player.setActionbar(
-      `Keyframe: ${currKeyframe ? currKeyframe.time : 'None'}   Time ${
+      `Keyframe: ${currKeyframe ? currKeyframe.time : "None"}   Time ${
         Math.floor(this.cursorTime * 100) / 100
-      } / ${Math.floor(length * 100) / 100}${suff}`
+      } / ${Math.floor(length * 100) / 100}${suff}`,
     );
     if (system.currentTick % 20 != 0) return;
     if (this.#particles) {
@@ -320,9 +323,9 @@ export class Editor {
         this.#displaySpeed,
         undefined,
         undefined,
-        '',
-        '',
-        this.#player.dimension
+        "",
+        "",
+        this.#player.dimension,
       );
     }
   }

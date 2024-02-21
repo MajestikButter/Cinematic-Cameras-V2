@@ -1,16 +1,15 @@
-import * as server from '@minecraft/server';
-import { FormCancelationReason, ModalFormData } from '@minecraft/server-ui';
+import * as server from "@minecraft/server";
 const { MolangVariableMap, system, world } = server;
 
-import cinematics from '../cinematics';
-import { CinematicType } from '../enums/CinematicType';
-import { Interpolation } from '../enums/Interpolation';
-import { PlayMode } from '../enums/PlayMode';
-import { Keyframe } from './Keyframe';
-import { BsplineMatrix, CatmullRomMatrix, CubicMatrix, Matrix } from './Matrix';
-import { CinematicPlayer } from './Player';
-import { JSONTimeline, Timeline } from './Timeline';
-import { Vector3 } from './Vector3';
+import cinematics from "../cinematics";
+import { CinematicType } from "../enums/CinematicType";
+import { Interpolation } from "../enums/Interpolation";
+import { PlayMode } from "../enums/PlayMode";
+import { Keyframe } from "./Keyframe";
+import { BsplineMatrix, CatmullRomMatrix, CubicMatrix, Matrix } from "./Matrix";
+import { CinematicPlayer } from "./Player";
+import { JSONTimeline, Timeline } from "./Timeline";
+import { Vector3 } from "./Vector3";
 
 export interface JSONCinematic {
   posType: CinematicType;
@@ -34,8 +33,16 @@ export class Cinematic {
       json.posType,
       json.rotType,
       Timeline.fromJSON(json.timeline),
-      json.playMode
+      json.playMode,
     );
+  }
+
+  static load(id: string) {
+    const data = world.getDynamicProperty(`cin:${id}`);
+    if (typeof data !== "string") {
+      throw `Could not find a cinematic with the id '${id}'`;
+    }
+    return Cinematic.fromJSON(id, JSON.parse(data));
   }
 
   #id: string;
@@ -72,7 +79,7 @@ export class Cinematic {
     posType = CinematicType.mixed,
     rotType = CinematicType.mixed,
     timeline = new Timeline(),
-    playMode = PlayMode.teleport
+    playMode = PlayMode.teleport,
   ) {
     this.#id = id;
     this.#posType = posType;
@@ -94,7 +101,7 @@ export class Cinematic {
     p3: Vector3,
     t: number,
     matrix: Matrix,
-    scale = 1
+    scale = 1,
   ) {
     let infl = this.getInfluence(t, matrix, scale);
 
@@ -113,7 +120,7 @@ export class Cinematic {
     v3: number,
     t: number,
     matrix: Matrix,
-    scale = 1
+    scale = 1,
   ) {
     let infl = this.getInfluence(t, matrix, scale);
     return v0 * infl[0] + v1 * infl[1] + v2 * infl[2] + v3 * infl[3];
@@ -141,16 +148,17 @@ export class Cinematic {
           undefined,
           undefined,
           undefined,
-          currPosK.pos?.value
+          currPosK.pos?.value,
         );
-      } else
+      } else {
         prevPosK = new Keyframe(
           0,
           undefined,
           undefined,
           undefined,
-          Vector3.zero
+          Vector3.zero,
         );
+      }
     }
     if (!prevRotK) {
       if (currRotK) {
@@ -164,7 +172,7 @@ export class Cinematic {
         undefined,
         undefined,
         undefined,
-        prevPosK.pos?.value
+        prevPosK.pos?.value,
       );
     }
     if (!currRotK) currRotK = new Keyframe(0, prevRotK.rot?.value);
@@ -175,7 +183,7 @@ export class Cinematic {
         undefined,
         undefined,
         undefined,
-        currPosK.pos?.value
+        currPosK.pos?.value,
       );
     }
     if (!nextRotK) nextRotK = new Keyframe(length, currRotK.rot?.value);
@@ -185,7 +193,7 @@ export class Cinematic {
         undefined,
         undefined,
         undefined,
-        nextPosK.pos?.value
+        nextPosK.pos?.value,
       );
     }
     if (!nextRotK2) nextRotK2 = new Keyframe(length, nextRotK.rot?.value);
@@ -239,7 +247,7 @@ export class Cinematic {
             nextPos2.value,
             pt,
             BsplineMatrix,
-            1 / 6
+            1 / 6,
           );
           break;
         }
@@ -250,7 +258,7 @@ export class Cinematic {
             nextPos2.value,
             nextPos.value,
             pt,
-            CubicMatrix
+            CubicMatrix,
           );
           break;
         }
@@ -274,7 +282,7 @@ export class Cinematic {
               nextPos2.value,
               pt,
               pMatrix,
-              pScale
+              pScale,
             );
           } else {
             pos = currPos.value.lerp(nextPos.value, pt);
@@ -297,7 +305,7 @@ export class Cinematic {
             nextRot2X,
             rt,
             BsplineMatrix,
-            1 / 6
+            1 / 6,
           );
           rotY = this.getPoint(
             prevRotY,
@@ -306,7 +314,7 @@ export class Cinematic {
             nextRot2Y,
             rt,
             BsplineMatrix,
-            1 / 6
+            1 / 6,
           );
           break;
         }
@@ -317,7 +325,7 @@ export class Cinematic {
             nextRotX,
             nextRot2X,
             rt,
-            CubicMatrix
+            CubicMatrix,
           );
           rotY = this.getPoint(
             prevRotY,
@@ -325,7 +333,7 @@ export class Cinematic {
             nextRotY,
             nextRot2Y,
             rt,
-            CubicMatrix
+            CubicMatrix,
           );
           break;
         }
@@ -349,7 +357,7 @@ export class Cinematic {
               nextRot2X,
               rt,
               rMatrix,
-              rScale
+              rScale,
             );
             rotY = this.getPoint(
               prevRotY,
@@ -358,7 +366,7 @@ export class Cinematic {
               nextRot2Y,
               rt,
               rMatrix,
-              rScale
+              rScale,
             );
           } else {
             rotX = currRot.value.lerp(nextRot.value, rt).x;
@@ -377,7 +385,7 @@ export class Cinematic {
       cmdKeyframe: this.timeline.getKeyframeBefore(
         time,
         true,
-        (k) => k.command !== ''
+        (k) => k.command !== "",
       ),
     };
   }
@@ -395,23 +403,23 @@ export class Cinematic {
   }
 
   play(player: CinematicPlayer, start = 0, speed = 1, editor = false) {
-    player.setProp('cinematicId', this.id);
-    player.setProp('cinematicTime', start);
-    player.setProp('cinematicSpeed', speed);
+    player.setProp("cinematicId", this.id);
+    player.setProp("cinematicTime", start);
+    player.setProp("cinematicSpeed", speed);
 
     let mode = this.#playMode;
-    player.setProp('cinematicMode', mode);
+    player.setProp("cinematicMode", mode);
 
-    player.runCommand('inputpermission set @s camera disabled');
-    player.runCommand('inputpermission set @s movement disabled');
+    player.runCommand("inputpermission set @s camera disabled");
+    player.runCommand("inputpermission set @s movement disabled");
 
     switch (mode) {
       case PlayMode.teleport: {
-        if (!editor) player.runCommand('gamemode spectator');
+        if (!editor) player.runCommand("gamemode spectator");
         break;
       }
       case PlayMode.camera: {
-        if (!editor) player.runCommand('gamemode spectator');
+        if (!editor) player.runCommand("gamemode spectator");
         break;
       }
     }
@@ -421,12 +429,12 @@ export class Cinematic {
       player.update(pos, rot, mode);
     }
 
-    if (editor) player.runCommand('gamemode creative');
+    if (editor) player.runCommand("gamemode creative");
 
     return new Promise<void>((resolve) => {
       const cinId = this.id;
       system.run(function tick() {
-        if (player.getProp('cinematicId') != cinId) {
+        if (player.getProp("cinematicId") != cinId) {
           resolve();
         } else system.run(tick);
       });
@@ -435,29 +443,29 @@ export class Cinematic {
 
   #lastCmdKs = new Map<string, Keyframe>();
   stop(player: CinematicPlayer) {
-    let id = player.getProp('cinematicId');
+    let id = player.getProp("cinematicId");
     if (id != this.id) return;
 
-    player.runCommand('inputpermission set @s camera enabled');
-    player.runCommand('inputpermission set @s movement enabled');
+    player.runCommand("inputpermission set @s camera enabled");
+    player.runCommand("inputpermission set @s movement enabled");
 
-    player.removeProp('cinematicId');
-    player.runCommand('ride @s stop_riding');
+    player.removeProp("cinematicId");
+    player.runCommand("ride @s stop_riding");
 
-    if (this.playMode == PlayMode.camera) player.runCommand('camera @s clear');
+    if (this.playMode == PlayMode.camera) player.runCommand("camera @s clear");
 
     this.#lastCmdKs.delete(player.id);
   }
 
   tick(player: CinematicPlayer, delta: number) {
-    let id = player.getProp('cinematicId');
+    let id = player.getProp("cinematicId");
     if (id != this.id) return;
 
-    let time = player.getProp('cinematicTime')!;
-    let speed = player.getProp('cinematicSpeed')!;
+    let time = player.getProp("cinematicTime")!;
+    let speed = player.getProp("cinematicSpeed")!;
     time += speed * delta;
 
-    player.setProp('cinematicTime', time);
+    player.setProp("cinematicTime", time);
 
     if (time > this.#timeline.length) return this.stop(player);
 
@@ -469,26 +477,26 @@ export class Cinematic {
     if (cmdK && cmdK.time !== lastK?.time) {
       this.#lastCmdKs.set(pId, cmdK);
       const cmd = cmdK.command;
-      if (cmd && cmd !== '') {
+      if (cmd && cmd !== "") {
         player.runCommand(cmd);
       }
     }
     let { pos, rot } = transform;
-    let mode = player.getProp('cinematicMode') ?? PlayMode.teleport;
+    let mode = player.getProp("cinematicMode") ?? PlayMode.teleport;
     player.update(pos, rot, mode);
   }
 
   visualize(
     start = 0,
     speed = 1,
-    particle = 'minecraft:basic_flame_particle',
-    keyframeParticle = 'minecraft:endrod',
-    prevParticle = 'minecraft:villager_angry',
-    nextParticle = 'minecraft:villager_happy',
-    dim = world.getDimension('overworld')
+    particle = "minecraft:basic_flame_particle",
+    keyframeParticle = "minecraft:endrod",
+    prevParticle = "minecraft:villager_angry",
+    nextParticle = "minecraft:villager_happy",
+    dim = world.getDimension("overworld"),
   ) {
     return new Promise<void>((resolve, reject) => {
-      if (!MolangVariableMap) return reject('missing required native classes');
+      if (!MolangVariableMap) return reject("missing required native classes");
       let length = this.#timeline.length;
       let stime = new Date().getTime() + start;
       const molang = new MolangVariableMap();
@@ -511,11 +519,9 @@ export class Cinematic {
           system.clearRun(keySchedule);
           return system.clearRun(schedule);
         }
-        let { pos: ppos } =
-          this.timeline.getPosKeyframeBefore(time, true) ??
+        let { pos: ppos } = this.timeline.getPosKeyframeBefore(time, true) ??
           new Keyframe(0, undefined, undefined, undefined, Vector3.zero);
-        let { pos: npos } =
-          this.timeline.getPosKeyframeAfter(time) ??
+        let { pos: npos } = this.timeline.getPosKeyframeAfter(time) ??
           new Keyframe(length, undefined, undefined, undefined, Vector3.zero);
 
         if (!ppos || !npos) return;
@@ -539,6 +545,15 @@ export class Cinematic {
     });
   }
 
+  withId(id: string) {
+    return new Cinematic(
+      id,
+      this.#posType,
+      this.#rotType,
+      this.timeline,
+      this.#playMode,
+    );
+  }
   withTypes(pos: CinematicType, rot: CinematicType) {
     return new Cinematic(this.id, pos, rot, this.timeline);
   }
@@ -548,20 +563,8 @@ export class Cinematic {
       this.#posType,
       this.#rotType,
       this.timeline,
-      mode
+      mode,
     );
-  }
-
-  async promptCopy(player: CinematicPlayer, copyText: string) {
-    const form = new ModalFormData()
-      .title('Copy Paste')
-      .textField(
-        'Select the text within the box using `Ctrl` + `A` then press `Ctrl` + `C` to copy the text to clipboard',
-        '',
-        copyText
-      );
-    let res = await player.show(form);
-    if (res.canceled) await this.promptCopy(player, copyText);
   }
 
   toJSON() {
@@ -571,5 +574,15 @@ export class Cinematic {
       playMode: this.#playMode,
       timeline: this.timeline.toJSON(),
     };
+  }
+
+  save(suffix = "") {
+    world.setDynamicProperty(
+      `cin:${this.id}${suffix}`,
+      JSON.stringify(this.toJSON()),
+    );
+  }
+  delete() {
+    world.setDynamicProperty(`cin:${this.id}`);
   }
 }

@@ -1,4 +1,4 @@
-import { Matrix } from './Matrix';
+import { Matrix } from "./Matrix";
 
 export interface Vector3Like {
   x: number;
@@ -62,7 +62,7 @@ export class Vector3 {
   constructor(vecLike: Vector3Like);
   constructor(x?: number, y?: number, z?: number);
   constructor(x: Vector3Like | number = 0, y = 0, z = 0) {
-    if (typeof x == 'object') {
+    if (typeof x == "object") {
       z = x.z;
       y = x.y;
       x = x.x;
@@ -78,8 +78,8 @@ export class Vector3 {
    * @param func the function to run on each property
    * @returns new Vector3 with the returned values of each function call
    */
-  execFunc(func: (prop: 'x' | 'y' | 'z', value: number) => number) {
-    return new Vector3(func('x', this.x), func('y', this.y), func('z', this.z));
+  execFunc(func: (prop: "x" | "y" | "z", value: number) => number) {
+    return new Vector3(func("x", this.x), func("y", this.y), func("z", this.z));
   }
 
   add(vecLike: Vector3Like) {
@@ -114,16 +114,16 @@ export class Vector3 {
     c1: Vector3,
     t: number,
     matrix: Matrix,
-    scale: number = 1
+    scale: number = 1,
   ) {
     let input = new Matrix([[1, t, Math.pow(t, 2), Math.pow(t, 3)]]);
     if (scale != 1) input = input.scale(scale);
     let infl = matrix.mul(input).asArray()[0];
 
-    let p0 = this.scale(infl[0])
-    let p1 = c0.scale(infl[1])
-    let p2 = c1.scale(infl[2])
-    let p3 = dest.scale(infl[3])
+    let p0 = this.scale(infl[0]);
+    let p1 = c0.scale(infl[1]);
+    let p2 = c1.scale(infl[2]);
+    let p3 = dest.scale(infl[3]);
 
     return p0.add(p1).add(p2).add(p3);
   }

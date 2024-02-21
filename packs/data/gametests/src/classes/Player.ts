@@ -1,6 +1,6 @@
-import { Player } from '@minecraft/server';
-import { Vector3 } from './Vector3';
-import { PlayMode } from '../enums/PlayMode';
+import { Container, ItemStack, Player } from "@minecraft/server";
+import { Vector3 } from "./Vector3";
+import { PlayMode } from "../enums/PlayMode";
 interface Properties {
   cinematicTime?: number;
   cinematicSpeed?: number;
@@ -8,7 +8,12 @@ interface Properties {
   cinematicMode?: PlayMode;
 }
 
-const PropertyMap = new Map<string, Properties>();
+const PROPERTIES: Properties = {
+  cinematicTime: 0,
+  cinematicMode: 0,
+  cinematicSpeed: 1,
+};
+
 export class CinematicPlayer {
   #player: Player;
 
@@ -29,6 +34,14 @@ export class CinematicPlayer {
     let p = this.#player;
     const rot = p.getRotation();
     return new Vector3(rot.x, rot.y);
+  }
+
+  #inventory?: Container;
+  get inventory() {
+    if (!this.#inventory) {
+      this.#inventory = this.#player.getComponent("inventory")?.container;
+    }
+    return this.#inventory!;
   }
 
   constructor(player: Player) {
@@ -55,45 +68,20 @@ export class CinematicPlayer {
         rx = Math.floor(rx * 1000) / 1000;
         ry = Math.floor(ry * 1000) / 1000;
         player.runCommand(
-          `camera @s set minecraft:free ease 0.07 linear pos ${x} ${y} ${z} rot ${rx} ${ry}`
+          `camera @s set minecraft:free ease 0.07 linear pos ${x} ${y} ${z} rot ${rx} ${ry}`,
         );
       }
     }
   }
 
-  #createProps() {
-    const p = this.#player;
-    const props = {
-      cinematicTime: 0,
-      cinematicMode: 0,
-      cinematicSpeed: 1,
-    };
-    PropertyMap.set(p.id, props);
-    return props;
-  }
-
-  #getProps() {
-    const p = this.#player;
-    let props = PropertyMap.get(p.id);
-    if (!props) props = this.#createProps();
-    return props;
-  }
-
   getProp<p extends keyof Properties>(prop: p): Properties[p] {
-    // const p = this.#player;
-    const props = this.#getProps();
-    // return p.getDynamicProperty(prop) as any;
-    return props[prop];
+    return <any> this.#player.getDynamicProperty(prop) ?? PROPERTIES[prop];
   }
   setProp<p extends keyof Properties>(prop: p, value: Properties[p]) {
-    // const p = this.#player;
-    this.#getProps()[prop] = value;
-    // return p.setDynamicProperty(prop, value);
+    return this.#player.setDynamicProperty(prop, value);
   }
   removeProp(prop: keyof Properties) {
-    // const p = this.#player;
-    delete this.#getProps()[prop];
-    // return p.removeDynamicProperty(prop);
+    return this.#player.setDynamicProperty(prop, undefined);
   }
   runCommand(command: string) {
     return this.#player.runCommandAsync(command);
@@ -101,9 +89,14 @@ export class CinematicPlayer {
   setActionbar(text: string) {
     this.#player.onScreenDisplay.setActionBar(text);
   }
+  setItem(slot: number, item?: ItemStack) {
+    const cont = this.inventory;
+    if (!cont) return;
+    cont.setItem(slot, item);
+  }
   show<f extends { show: (plr: Player) => any }>(
-    form: f
-  ): ReturnType<f['show']> {
+    form: f,
+  ): ReturnType<f["show"]> {
     return form.show(this.#player);
   }
 }

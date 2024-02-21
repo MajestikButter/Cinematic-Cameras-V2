@@ -1,5 +1,5 @@
-import { Interpolation } from '../enums/Interpolation';
-import { Vector3 } from './Vector3';
+import { Interpolation } from "../enums/Interpolation";
+import { Vector3 } from "./Vector3";
 
 export interface JSONKeyframe {
   p?: [Interpolation, number, number, number];
@@ -19,7 +19,7 @@ export class Keyframe {
       json.p ? new Vector3(...json.p.slice(1)) : undefined,
       json.p ? json.p[0] : undefined,
       json.pc,
-      json.cmd
+      json.cmd,
     );
   }
 
@@ -69,14 +69,16 @@ export class Keyframe {
     pos?: Vector3,
     posInterp = Interpolation.linear,
     posConstant = false,
-    command = ''
+    command = "",
   ) {
     this.#time = Math.floor(time * 100) / 100;
     this.#command = command;
-    if (pos)
+    if (pos) {
       this.#pos = { value: pos, interp: posInterp, constant: posConstant };
-    if (rot)
+    }
+    if (rot) {
       this.#rot = { value: rot, interp: rotInterp, constant: rotConstant };
+    }
   }
 
   atTimeCode(time: number) {
@@ -90,7 +92,7 @@ export class Keyframe {
       p?.value,
       p?.interp,
       p?.constant,
-      this.command
+      this.command,
     );
   }
 
@@ -105,7 +107,7 @@ export class Keyframe {
       p?.value,
       p?.interp,
       p?.constant,
-      this.command
+      this.command,
     );
   }
 
@@ -120,7 +122,7 @@ export class Keyframe {
       p?.value,
       interpolation,
       p?.constant,
-      this.command
+      this.command,
     );
   }
 
@@ -135,7 +137,7 @@ export class Keyframe {
       pos,
       p?.interp,
       p?.constant,
-      this.command
+      this.command,
     );
   }
 
@@ -150,7 +152,7 @@ export class Keyframe {
       p?.value,
       p?.interp,
       p?.constant,
-      this.command
+      this.command,
     );
   }
 
@@ -174,7 +176,7 @@ export class Keyframe {
       o.rc = r.constant;
     }
     const cmd = this.#command;
-    if (cmd !== '') o.cmd = cmd;
+    if (cmd !== "") o.cmd = cmd;
 
     return o;
   }

@@ -1,25 +1,12 @@
 {
-  "format_version": "1.19.40",
+  "format_version": "1.20.60",
   "minecraft:item": {
     "description": {
       "identifier": "mbcc:new_keyframe",
-      "category": "Equipment"
+      "menu_category": { "category": "none" }
     },
     "components": {
-      "minecraft:creative_category": { "parent": "" },
-      "minecraft:icon": {
-        "texture": "mbcc_new_keyframe"
-      },
-      "minecraft:render_offsets": {
-        "main_hand": {
-          "first_person": {
-            "scale": [0,0,0]
-          },
-          "third_person": {
-            "scale": [0,0,0]
-          }
-        }
-      }
+      "minecraft:icon": { "textures": { "default": "mbcc_new_keyframe" } }
     }
   }
 }

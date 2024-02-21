@@ -2,7 +2,7 @@
 
 ## How to Use
 1. Download the latest version from the [Releases](https://github.com/MajestikButter/Cinematic-Cameras-V2/releases) page.
-2. Enable the `Beta APIs` and `Holiday Creator Features` experiments.
+2. Enable the `Beta APIs` experiments.
 3. Apply the pack to your desired world.
 4. Load into the world.
 5. Create a new cinematic using [`!new`](#new-cinematicid-string-data-jsoncinematic) with the desired cinematic id.
@@ -34,17 +34,22 @@
 
 ## Using Autosave
 Autosave is automatically enabled and saves the currently edited cinematic every 30 seconds.
-You can load the autosave by running `!edit autosave`. This will load the last autosaved cinematic in the event that
+You can load the autosave by running `!edit <cinematicId>_autosave`. This will load the last autosave for the cinematic in the event that
 your game exits or crashes while editing a cinematic.
-Note that this only saves one cinematic at a time.
 
 
 ## Commands
+#### `!list`
+> Lists all cinematics saved to the world.
+
 #### `!new <cinematicId: string> [data: JSONCinematic]`
-> Creates a new cinematic. Only saves for the current game session, make sure to use `!export`.
+> Creates a new cinematic.
+
+#### `!delete <cinematicId: string>`
+> Deletes a saved cinematic.
 
 #### `!edit <cinematicId: string>`
-> Opens the editor for the specified cinematic. Only saves for the current game session, make sure to use `!export` after you're done.
+> Opens the editor for the specified cinematic.
 
 #### `!save <cinematicId: string>`
 > Saves the cinematic that is currently being edited with a new cinematic id.
