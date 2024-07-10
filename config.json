@@ -21,7 +21,9 @@
       "build": {
         "export": {
           "readOnly": false,
-          "target": "local"
+          "target": "local",
+          "bpName": "'BP'",
+          "rpName": "'RP'"
         },
         "filters": [
           {
@@ -34,7 +36,7 @@
                 "minify": true
               },
               "moduleUUID": "861094c5-f426-447c-ad1d-2bea2d9de201",
-              "modules": ["@minecraft/server@1.9.0-beta", "@minecraft/server-ui@1.1.0"],
+              "modules": ["@minecraft/server@1.12.0-beta", "@minecraft/server-ui@1.1.0"],
               "outfile": "BP/scripts/index.js"
             }
           },
@@ -46,7 +48,9 @@
       "default": {
         "export": {
           "readOnly": false,
-          "target": "local"
+          "target": "local",
+          "bpName": "'BP'",
+          "rpName": "'RP'"
         },
         "filters": [
           {
@@ -58,7 +62,7 @@
                 "minify": false
               },
               "moduleUUID": "861094c5-f426-447c-ad1d-2bea2d9de201",
-              "modules": ["@minecraft/server@1.9.0-beta", "@minecraft/server-ui@1.1.0"],
+              "modules": ["@minecraft/server@1.12.0-beta", "@minecraft/server-ui@1.1.0"],
               "outdir": "BP/scripts",
               "outfile": "BP/scripts/index.js"
             }
