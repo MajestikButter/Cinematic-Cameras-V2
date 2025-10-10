@@ -22,7 +22,9 @@ export async function promptCopy(player: Player, copyText: string) {
     .textField(
       "Select the text within the box using `Ctrl` + `A` then press `Ctrl` + `C` to copy the text to clipboard",
       "",
-      copyText,
+      {
+        defaultValue: copyText,
+      },
     );
   await forcedShowForm(player, form);
 }

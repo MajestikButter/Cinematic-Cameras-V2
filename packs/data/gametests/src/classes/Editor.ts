@@ -63,15 +63,15 @@ export class Editor {
 
     const form = new ModalFormData()
       .title("Edit Keyframe")
-      .textField("Keyframe Position", "", "" + keyframe.time)
-      .textField("Command", "Command to run", keyframe.command)
-      .toggle("Constant Position", p?.constant ?? false)
-      .textField("X", "Position X", "" + (p?.value.x ?? ""))
-      .textField("Y", "Position Y", "" + (p?.value.y ?? ""))
-      .textField("Z", "Position Z", "" + (p?.value.z ?? ""))
-      .toggle("Constant Rotation", r?.constant ?? false)
-      .textField("Pitch", "Rotation Pitch", "" + (r?.value.x ?? ""))
-      .textField("Yaw", "Rotation Yaw", "" + (r?.value.y ?? ""));
+      .textField("Keyframe Position", "", { defaultValue: "" + keyframe.time })
+      .textField("Command", "Command to run", { defaultValue: keyframe.command })
+      .toggle("Constant Position", { defaultValue: p?.constant ?? false })
+      .textField("X", "Position X", { defaultValue: "" + (p?.value.x ?? "") })
+      .textField("Y", "Position Y", { defaultValue: "" + (p?.value.y ?? "") })
+      .textField("Z", "Position Z", { defaultValue: "" + (p?.value.z ?? "") })
+      .toggle("Constant Rotation", { defaultValue: r?.constant ?? false })
+      .textField("Pitch", "Rotation Pitch", { defaultValue: "" + (r?.value.x ?? "") })
+      .textField("Yaw", "Rotation Yaw", { defaultValue: "" + (r?.value.y ?? "") });
 
     const types = this.#cinematic.types;
     let posInterp = types.pos == CinematicType.mixed;
@@ -79,7 +79,7 @@ export class Editor {
       form.dropdown(
         "Position Interpolation",
         ["Linear", "Catmull Rom"],
-        p?.interp ?? 0,
+        { defaultValueIndex: p?.interp ?? 0 },
       );
     }
     let rotInterp = types.rot == CinematicType.mixed;
@@ -87,7 +87,7 @@ export class Editor {
       form.dropdown(
         "Rotation Interpolation",
         ["Linear", "Catmull Rom"],
-        r?.interp ?? 0,
+        { defaultValueIndex: r?.interp ?? 0 },
       );
     }
 
@@ -162,31 +162,37 @@ export class Editor {
     const types = this.#cinematic.types;
     const form = new ModalFormData()
       .title("Cinematic Settings")
-      .dropdown("Position Type", ["Mixed", "BSpline", "Cubic"], types.pos)
-      .dropdown("Rotation Type", ["Mixed", "BSpline", "Cubic"], types.rot)
-      .dropdown("Play Mode", ["Teleport", "Camera"], this.#cinematic.playMode)
+      .dropdown("Position Type", ["Mixed", "BSpline", "Cubic"], { defaultValueIndex: types.pos })
+      .dropdown("Rotation Type", ["Mixed", "BSpline", "Cubic"], { defaultValueIndex: types.rot })
+      .dropdown("Play Mode", ["Teleport", "Camera"], { defaultValueIndex: this.#cinematic.playMode })
       .slider(
         "Editor Playback Speed (1/10 Sec)",
         1,
         100,
-        1,
-        this.#playbackSpeed * 10,
+        {
+          valueStep: 1,
+          defaultValue: this.#playbackSpeed * 10
+        },
       )
       .slider(
         "Editor Particle Speed (1/10 Sec)",
         1,
         100,
-        1,
-        this.#displaySpeed * 10,
+        {
+          valueStep: 1,
+          defaultValue: this.#displaySpeed * 10 
+        }
       )
       .slider(
         "Editor Move Increment (1/10 Sec)",
         1,
         20,
-        1,
-        this.#moveIncrement * 10,
+        {
+          valueStep: 1,
+          defaultValue: this.#moveIncrement * 10
+        }
       )
-      .toggle("Editor Particles Enabled", this.#particles);
+      .toggle("Editor Particles Enabled", { defaultValue: this.#particles });
     let res = await this.#player.show(form);
     if (res.canceled) {
       if (res.cancelationReason == FormCancelationReason.UserBusy) {
