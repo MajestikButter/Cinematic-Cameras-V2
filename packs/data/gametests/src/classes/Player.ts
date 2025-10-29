@@ -84,7 +84,7 @@ export class CinematicPlayer {
     return this.#player.setDynamicProperty(prop, undefined);
   }
   runCommand(command: string) {
-    return this.#player.runCommandAsync(command);
+    return this.#player.runCommand(command);
   }
   setActionbar(text: string) {
     this.#player.onScreenDisplay.setActionBar(text);

@@ -18,11 +18,13 @@ export const cinematics: {
   [id: string]: Cinematic;
 } = {};
 
-for (const id of getCinematicIds()) {
-  cinematics[id] = Cinematic.load(id);
-}
+world.afterEvents.worldLoad.subscribe(() => {
+  for (const id of getCinematicIds()) {
+    cinematics[id] = Cinematic.load(id);
+  }
 
-for (let k in stored) {
-  let obj = stored[k];
-  cinematics[k] = Cinematic.fromJSON(k, obj);
-}
+  for (let k in stored) {
+    let obj = stored[k];
+    cinematics[k] = Cinematic.fromJSON(k, obj);
+  }
+});

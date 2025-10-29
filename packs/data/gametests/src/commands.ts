@@ -281,20 +281,6 @@ async function handleCommand(command: string, message: string, sender: Player) {
   }
 }
 
-world.beforeEvents.chatSend.subscribe((evd) => {
-  const { sender, message } = evd;
-  const commandMatch = message.match(/!(\w+)/);
-  if (
-    !commandMatch ||
-    (!sender.isOp() && !sender.hasTag("cinematicsPerms"))
-  ) return;
-  evd.cancel = true;
-
-  const command = commandMatch[0].slice(1);
-  const msg = message.slice(command.length + 1).trimStart();
-  system.run(() => handleCommand(command, msg, sender));
-});
-
 system.afterEvents.scriptEventReceive.subscribe((ev) => {
   const ent = ev.sourceEntity;
   if (!(ent instanceof Player)) return;

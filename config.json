@@ -36,7 +36,7 @@
                 "minify": true
               },
               "moduleUUID": "861094c5-f426-447c-ad1d-2bea2d9de201",
-              "modules": ["@minecraft/server@1.12.0-beta", "@minecraft/server-ui@1.1.0"],
+              "modules": ["@minecraft/server@2.0.0", "@minecraft/server-ui@2.0.0"],
               "outfile": "BP/scripts/index.js"
             }
           },
@@ -62,7 +62,7 @@
                 "minify": false
               },
               "moduleUUID": "861094c5-f426-447c-ad1d-2bea2d9de201",
-              "modules": ["@minecraft/server@1.12.0-beta", "@minecraft/server-ui@1.1.0"],
+              "modules": ["@minecraft/server@2.0.0", "@minecraft/server-ui@2.0.0"],
               "outdir": "BP/scripts",
               "outfile": "BP/scripts/index.js"
             }

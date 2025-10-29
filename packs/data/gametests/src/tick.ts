@@ -29,21 +29,23 @@ function tickEditor(p: Player, editor: Editor, time: number) {
   }
 }
 
-system.runInterval(() => {
-  const time = new Date().getTime();
-  const delta = (time - prevRun) / 1000;
-  prevRun = time;
+world.afterEvents.worldLoad.subscribe(() => {
+  system.runInterval(() => {
+    const time = new Date().getTime();
+    const delta = (time - prevRun) / 1000;
+    prevRun = time;
 
-  for (let p of world.getAllPlayers()) {
-    const editor = editors[p.id];
-    if (editor) tickEditor(p, editor, time);
+    for (let p of world.getAllPlayers()) {
+      const editor = editors[p.id];
+      if (editor) tickEditor(p, editor, time);
 
-    let plr = new CinematicPlayer(p);
-    let id = plr.getProp("cinematicId");
-    // console.warn(id);
-    if (!id) continue;
-    let cin = cinematics[id];
-    if (!cin) continue;
-    cin.tick(plr, delta);
-  }
-}, 1);
+      let plr = new CinematicPlayer(p);
+      let id = plr.getProp("cinematicId");
+      // console.warn(id);
+      if (!id) continue;
+      let cin = cinematics[id];
+      if (!cin) continue;
+      cin.tick(plr, delta);
+    }
+  }, 1);
+});
